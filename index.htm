@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+
+<html>
+    <head>
+        <title>DB group 39</title>
+        <link rel = "stylesheet" href = "DB_style.css">
+    </head>
+
+    <body>
+        <h1 align = "center">Welcome to Group 39 Querry page</h1>
+        <hr>
+        <br>
+
+        <form action = 'http://127.0.0.1:8081/test_connection'  method = 'POST'>
+            <input type = 'submit' value = 'Test Connection'>
+        </form>
+
+        <br>
+        <form action = "http://127.0.0.1:8081/process_post" method = "POST">
+            query: <input type = "text" name = "query"> <br>
+            <input type = "submit" value = "Submit">
+        </form>
+    </body>
+</html>

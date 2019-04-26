@@ -1,0 +1,23 @@
+
+#inbox{
+    background-color: #DDDDDD;
+    width : 720px;
+    height : 360px;
+    position : relative;
+    border: 1px solid black;
+}
+
+#in_q{
+    position : absolute;
+    padding : 1px;
+    left : 1px;
+    width : 714px;
+    height : 300px;
+    text-align: left;
+}
+
+#sub_q{
+    position : absolute;
+    bottom: 1px;
+    right : 1px;
+}
