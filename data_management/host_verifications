@@ -1,0 +1,26 @@
+HOST_VERIFICATION_ID,HOST_VERIFICATION
+0, facebook
+1, google
+2, government_id
+3, identity_manual
+4, jumio
+5, kba
+6, manual_offline
+7, manual_online
+8, offline_government_id
+9, phone
+10, photographer
+11, reviews
+12, selfie
+13, sent_id
+14, sesame
+15, sesame_offline
+16, weibo
+17, work_email
+18, zhima_selfie
+19,email
+20,facebook
+21,identity_manual
+22,jumio
+23,phone
+24,reviews

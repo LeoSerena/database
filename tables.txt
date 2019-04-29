@@ -1,0 +1,155 @@
+create table Countries(
+	country_id	INTEGER,
+	country		CHAR(64),
+	country_code	CHAR(16),
+	primary key(country_id));
+
+create table Cities(
+	city_id		INTEGER,
+	city		CHAR(64),
+	country_id	INTEGER NOT NULL,
+	primary key(city_id),
+	foreign key(country_id) references Countries(country_id));
+
+create table Neigh(
+	neigh_id	INTEGER,
+	neigh		CHAR(64),
+	city_id		INTEGER NOT NULL,
+	primary key(neigh_id),
+	foreign key(city_id) references Cities(city_id));
+
+create table Calendar(
+	date_calendar	DATE,
+	available	CHAR(1),
+	price		CHAR(64),
+	listing_id	INTEGER NOT NULL,
+	primary key(date_calendar, listing_id),
+	foreign key(listing_id) references Listings(listing_id));
+
+create table Host_verifications(
+	host_verification_id	INTEGER,
+	host_verification	CHAR(64),
+	primary key(host_verification_id));
+
+create table Host_verif_AND_Host(
+	host_verification_id	INTEGER,
+	host_id			INTEGER,
+	primary key(host_id, host_verification_id),
+	foreign key(host_verification_id) references Host_verifications(host_verification_id),
+	foreign key(host_id) references Hosts(host_id));
+
+create table Host_response_times(
+	host_response_time_id	INTEGER,
+	host_response_time	CHAR(64),
+	primary key(host_response_time_id));
+
+create table Hosts(
+	host_id			INTEGER,
+	neigh_id		INTEGER NOT NULL,
+	host_response_time_id	INTEGER NOT NULL,
+	host_url		CHAR(256),
+	host_name		CHAR(128),
+	host_since		DATE,
+	host_about		CLOB,
+	host_response_rate	FLOAT,
+	host_thumbnail_url	CHAR(256),
+	host_picture_url	CHAR(256),
+	primary key(host_id),
+	foreign key(neigh_id) references Neigh(neigh_id),
+	foreign key(host_response_time_id) references Host_response_times(host_response_time_id));
+
+create table Reviews(
+	review_id		INTEGER,
+	listing_id		INTEGER NOT NULL,
+	date_review		DATE,
+	reviewer_id		INTEGER,
+	reviewer_name		CHAR(256),
+	reviewer_comment	BLOB,
+	primary key(review_id),
+	foreign key(listing_id) references Listings(listing_id));
+
+create table Cancellation_policies(
+	cancellation_policy_id	INTEGER,
+	cancellation_policy	CHAR(64),
+	primary key(cancellation_policy_id));
+
+create table amenities(
+	amenity_id	INTEGER,
+	amenity		CHAR(128),
+	primary key(amenity_id));
+
+create table amenities_AND_Listings(
+	amenity_ids	INTEGER,
+	listing_id	INTEGER,
+	primary key(listing_id, amenity_id),
+	foreign key(amenity_id) references Amenities(amenity_id),
+	foreign key(listing_id) references Listings(listing_id));
+
+create table Bed_types(
+	bed_type_id	INTEGER,
+	bed_type	CHAR(64),
+	primary key(bed_type_id));
+
+create table Room_types(
+	room_type_id	INTEGER,
+	room_type	CHAR(64),
+	primary key(room_type_id));
+
+create table Property_types(
+	property_type_id	INTEGER,
+	property_type		CHAR(64),
+	primary key(property_type_id));
+
+create table Listings(
+	listing_id		INTEGER,
+	neigh_id		INTEGER NOT NULL,
+	host_id			INTEGER NOT NULL,
+	cancellation_policy_id	INTEGER NOT NULL,
+	bed_type_id		INTEGER NOT NULL,
+	room_type_id		INTEGER NOT NULL,
+	property_type_id	INTEGER NOT NULL,
+	longitude		FLOAT,
+	latitude		FLOAT,
+	summary			BLOB,
+	name			CHAR(256),
+	listing_url		CHAR(256),
+	interaction		BLOB,
+	access			BLOB,
+	notes			BLOB,
+	neighborhood_overview	BLOB,
+	description		BLOB,
+	space			BLOB,
+	transit			BLOB,
+	house_rules		BLOB,
+	picture_url		CHAR(256),
+	accommodates		INTEGER,
+	bathrooms		FLOAT,
+	bedrooms		FLOAT,
+	beds			FLOAT,
+	square_feet		FLOAT,
+	price			FLOAT,
+	guests_included		INTEGER,
+	weekly_price		INTEGER,
+	monthly_price		INTEGER,
+	security_deposit	INTEGER,
+	cleaning_fee		INTEGER,
+	extra_people		INTEGER,
+	minimum_nights		INTEGER,
+	maximum_nights		INTEGER,
+	review_scores_accuracy		FLOAT,
+	review_scores_cleanliness	FLOAT,
+	review_scores_checkin		FLOAT,
+	review_scores_communication	FLOAT,
+	review_scores_location		FLOAT,
+	review_scores_value		FLOAT,
+	review_scores_rating		FLOAT,
+	require_guest_profile_picture	CHAR(1),
+	require_guest_phone_verification	CHAR(1),
+	is_business_travel_ready	CHAR(1),
+	primary key(listing_id),
+	foreign key(neigh_id) references Neigh(neigh_id),
+	foreign key(host_id) references Hosts(host_id),
+	foreign key(cancellation_policy_id) references Cancellation_policies(cancellation_policy_id),
+	foreign key(bed_type_id) references Bed_types(bed_type_id),
+	foreign key(room_type_id) references Room_types(room_type_id),
+	foreign key(property_type_id) references Property_types(property_type_id));

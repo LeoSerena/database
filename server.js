@@ -50,7 +50,7 @@ function test_connection(response){
         },
         function(err, connection){
             if(err){
-              eventEmitter.emit('error', error);
+              eventEmitter.emit('error', err);
               return;
             }
             connection.execute(
@@ -61,7 +61,7 @@ function test_connection(response){
                 function(err, result){
                     if(err){
                         doRelease(connection);
-                        eventEmitter.emit('error', error);
+                        eventEmitter.emit('error', err);
                         return;
                     }
                     res = result;
