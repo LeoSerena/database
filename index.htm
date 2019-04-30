@@ -5,10 +5,11 @@
     <head>
         <title>DB group 39</title>
         <link rel = "stylesheet" href = "DB_style.css">
+        <script src = src="jquery-3.3.1.min.js"></script>
     </head>
 
     <body>
-        <h1 align = "center">Welcome to Group 39 Querry page</h1>
+        <h1 align = "center">Welcome to Group 39 Query page</h1>
         <hr>
         <br>
 
@@ -21,5 +22,13 @@
             query: <input type = "text" name = "query"> <br>
             <input type = "submit" value = "Submit">
         </form>
+        <br>
+        <sript>
+            $(document).ready(function(){
+                $("button").click(function(){
+                    $("p").hide();
+                })
+            })
+        </sript>
     </body>
 </html>
