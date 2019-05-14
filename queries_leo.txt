@@ -1,0 +1,63 @@
+1) ok
+SELECT AVG(L.price)
+FROM listings L
+WHERE L.bedrooms = 8
+
+2) ok
+SELECT AVG(L.review_scores_cleanliness)
+FROM Listings L, amenities_and_listings A_L, amenities AM
+WHERE (A_L.amenity_id = AM.amenity_id)
+  AND (A_L.listing_id = L.listing_id) 
+  AND (AM.amenity = 'TV');
+
+3) ok
+SELECT DISTINCT H.HOST_NAME
+FROM hosts H, listings L
+WHERE H.host_id = L.host_id
+  AND 'f' NOT IN 
+    (SELECT C.available
+    FROM calendar C
+    WHERE C.LISTING_ID = L.LISTING_ID
+      AND C.DATE_CALENDAR > TO_DATE('2019-03-01','yyyy-mm-dd')
+      AND C.DATE_CALENDAR < TO_DATE('2019-09-01','yyyy-mm-dd'));
+
+4) ok
+SELECT COUNT(L.LISTING_ID)
+FROM Listings L
+WHERE L.HOST_ID IN
+  ((SELECT DISTINCT H1.host_id
+  FROM Hosts H1, Hosts H2
+  WHERE H1.host_id < H2.host_id AND H1.host_name = H2.host_name));
+
+5)
+SELECT C
+FROM Calendar C, Hosts H, Listings L
+WHERE H.name = 'Viajes eco' AND L.listing_id = C.listing_id AND L.host_id = H.host_id
+(I assumed 'Viajes eco' was a host)
+
+6)
+SELECT H.host_id, H1.host_name
+FROM Hosts H
+-
+(SELECT DISTINCT(H1.host_id, H1.host_name)
+FROM Hosts H1, Hosts H2, Listings L1, Listings L2
+WHERE (H1.host_id = H2.host_id) AND (L1.listing_id != L2.listing_id))
+(certainly a way to do better)
+
+7)
+SELECT AVG(L.price)
+FROM Listings L, Listings_AND_Amenities L_A
+WHERE (L.listing_id = L_A.listing_id) AND (L_A.amenity = 'wifi')
+-
+SELECT AVG(L.price)
+FROM Listings L, Listings_AND_Amenities L_A
+WHERE (L.listing_id = L_A.listing_id) AND (L_A.amenity != 'wifi')
+
+8)
+SELECT AVG(L.price)
+FROM Listing L, Neighbourhoods N, Cities C
+WHERE L.listings.neighbourhood is in Berlin
+-
+same in Madrid
+
+9)
