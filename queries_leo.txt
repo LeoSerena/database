@@ -1,3 +1,5 @@
+DELIVERABLE 2
+-------------
 1) ok
 SELECT AVG(L.price)
 FROM listings L
@@ -29,35 +31,68 @@ WHERE L.HOST_ID IN
   FROM Hosts H1, Hosts H2
   WHERE H1.host_id < H2.host_id AND H1.host_name = H2.host_name));
 
-5)
-SELECT C
-FROM Calendar C, Hosts H, Listings L
-WHERE H.name = 'Viajes eco' AND L.listing_id = C.listing_id AND L.host_id = H.host_id
-(I assumed 'Viajes eco' was a host)
+5) ok
+SELECT C.DATE_CALENDAR
+FROM CALENDAR C, HOSTS H, LISTINGS L
+WHERE H.HOST_ID = L.HOST_ID
+  AND L.LISTING_ID = C.LISTING_ID
+  AND H.host_name = 'Viajes Eco';
 
-6)
-SELECT H.host_id, H1.host_name
-FROM Hosts H
--
-(SELECT DISTINCT(H1.host_id, H1.host_name)
-FROM Hosts H1, Hosts H2, Listings L1, Listings L2
-WHERE (H1.host_id = H2.host_id) AND (L1.listing_id != L2.listing_id))
-(certainly a way to do better)
+6) ok
+SELECT HOST_NAME FROM 
+(SELECT H.HOST_NAME, COUNT(L.LISTING_ID) AS coconut
+FROM HOSTS H, LISTINGS L
+WHERE H.HOST_ID = L.HOST_ID
+GROUP BY H.HOST_NAME)
+WHERE coconut = 1;
 
-7)
-SELECT AVG(L.price)
-FROM Listings L, Listings_AND_Amenities L_A
-WHERE (L.listing_id = L_A.listing_id) AND (L_A.amenity = 'wifi')
--
-SELECT AVG(L.price)
-FROM Listings L, Listings_AND_Amenities L_A
-WHERE (L.listing_id = L_A.listing_id) AND (L_A.amenity != 'wifi')
+DELIVERABLE 3
+-------------
+1) ok
+SELECT City.city, COUNT(H.HOST_ID)
+FROM HOSTS H, LISTINGS L, NEIGH N, CITIES City
+WHERE H.host_id = L.host_id
+  AND L.SQUARE_FEET IS NOT NULL
+  AND H.NEIGH_ID = N.NEIGH_ID
+  AND N.city_id = City.city_id
+  GROUP BY City
+  ORDER BY City;
 
-8)
-SELECT AVG(L.price)
-FROM Listing L, Neighbourhoods N, Cities C
-WHERE L.listings.neighbourhood is in Berlin
--
-same in Madrid
+4) ok (je crois)
+SELECT DISTINCT(L.LISTING_ID), AVG(C.PRICE)
+FROM LISTINGS L, PROPERTY_TYPES PT, NEIGH N, CITIES City, CALENDAR C, CANCELLATION_POLICIES CP, HOSTS H, HOST_VERIF_AND_HOST HVH, HOST_VERIFICATIONS HV
+WHERE L.PROPERTY_TYPE_ID = PT.PROPERTY_TYPE_ID
+  AND PT.PROPERTY_TYPE = 'Apartment'
+  AND N.NEIGH_ID = L.NEIGH_ID
+  AND N.CITY_ID = City.CITY_ID
+  AND City.CITY = 'berlin'
+  AND C.LISTING_ID = L.LISTING_ID
+  AND C.DATE_CALENDAR > TO_DATE('2019-03-01','yyyy-mm-dd')
+  AND C.DATE_CALENDAR < TO_DATE('2019-09-01','yyyy-mm-dd')
+  AND C.price IS NOT NULL
+  AND L.BEDS > 2
+  AND L.REVIEW_SCORES_LOCATION >= 8
+  AND CP.CANCELLATION_POLICY_ID = L.CANCELLATION_POLICY_ID
+  AND CP.CANCELLATION_POLICY = 'flexible'
+  AND L.HOST_ID = H.HOST_ID
+  AND H.HOST_ID = HVH.HOST_ID
+  AND HVH.HOST_VERIFICATION_ID = HV.HOST_VERIFICATION_ID
+  AND HV.HOST_VERIFICATION = ' government_id'
+  GROUP BY L.LISTING_ID
+  ORDER BY AVG(C.price)
+FETCH FIRST 5 ROWS ONLY;
 
-9)
+7) aucune idée de comment sortir 3 éléments pour chaque élément d'une table
+
+10)
+SELECT DISTINCT(N.NEIGH)
+FROM NEIGH N, CITIES City, LISTINGS L, HOSTS H, CALENDAR C
+WHERE N.CITY_ID = City.CITY_ID
+  AND City.CITY = 'madrid'
+  AND N.NEIGH_ID = L.NEIGH_ID
+  AND H.HOST_ID = L.HOST_ID
+  AND H.HOST_SINCE < TO_DATE('2017-06-01','yyyy-mm-dd')
+  AND C.LISTING_ID = L.LISTING_ID
+  AND C.AVAILABLE = 't'
+  AND C.DATE_CALENDAR >= TO_DATE('2019-01-01','yyyy-mm-dd')
+  AND C.DATE_CALENDAR <= TO_DATE('2019-12-31','yyyy-mm-dd');
