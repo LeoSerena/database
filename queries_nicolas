@@ -1,0 +1,154 @@
+Assignment 2
+
+9 Should be ok
+SELECT H.host_id, H.host_name, COUNT(L.listing_id)
+FROM HOSTS H,LISTINGS L, NEIGH N, CITIES C, COUNTRIES CO
+WHERE L.neigh_id = N.neigh_id AND N.city_id = C.city_id 
+AND C.country_id = CO.country_id AND CO.country = 'Spain'
+AND H.HOST_ID = L.HOST_ID
+GROUP BY H.host_id,H.host_name
+ORDER BY COUNT(L.listing_id) DESC
+FETCH FIRST 10 ROWS ONLY
+;
+
+
+10: Order is different when fetching 10 first and not when using ORDER
+SELECT L.listing_id, L.name, L.review_scores_rating
+FROM listings L, neigh N, cities C
+WHERE review_scores_rating IS NOT NULL AND L.neigh_id = N.neigh_id
+AND N.city_id = C.city_id and C.CITY = 'barcelona'
+ORDER BY review_scores_rating DESC
+FETCH FIRST 10 ROWS ONLY;
+
+
+
+
+
+——————
+Assignment 3
+
+3 Should be ok
+SELECT hosts_by_count.host_id, hosts_by_count.host_name, hosts_by_count.counts
+FROM
+(SELECT H.host_id, H.host_name, COUNT(L.listing_id) as counts
+FROM HOSTS H,LISTINGS L
+WHERE H.HOST_ID = L.HOST_ID
+GROUP BY H.host_id,H.host_name
+ORDER BY COUNT(L.listing_id) DESC
+) hosts_by_count,
+(SELECT max(t.counts) as max_val
+FROM
+(SELECT H.host_id, COUNT(L.listing_id) as counts
+FROM HOSTS H,LISTINGS L
+WHERE H.HOST_ID = L.HOST_ID
+GROUP BY H.host_id,H.host_name
+) t ) max_count
+WHERE hosts_by_count.counts = max_count.max_val
+;
+
+
+
+6 Should work; but possibly do not return rev_counts and top_n
+SELECT t2.host_id, t2.listing_id, t2.rev_counts, t2.top_n
+FROM
+(SELECT t.host_id,t.listing_id,t.rev_counts , row_number() over (partition by t.host_id ORDER BY t.rev_counts DESC) as top_n
+FROM
+(SELECT L.host_id,L.listing_id, COUNT(R.review_id) as rev_counts
+FROM Listings L, Reviews R
+WHERE L.listing_id = R.listing_id
+GROUP BY L.host_id,L.listing_id
+ORDER BY COUNT(L.listing_id) DESC) t ) t2
+WHERE t2.top_n <= 3;
+
+
+
+9 Not sure about what should be returned
+
+SELECT t.city, sum(t.rev_counts) as count_per_city
+FROM
+
+(SELECT L2.listing_id,L2.name, C.city, count(R.review_id) as rev_counts
+FROM Neigh N, Cities C, Reviews R,
+
+(SELECT L.listing_id,L.name,L.room_type_id, L.neigh_id
+FROM Listings L
+WHERE L.room_type_id IN
+(SELECT t.room_type_id
+FROM
+(SELECT L.room_type_id, R.room_type,AVG(L.accommodates) as avg_accommodates
+FROM Listings L, Room_types R
+WHERE L.room_type_id = R.room_type_id
+GROUP BY L.room_type_id, R.room_type) t
+WHERE t.avg_accommodates > 3)) L2
+
+WHERE L2.listing_id = R.listing_id AND L2.neigh_id = N.neigh_id
+AND N.city_id = C.city_id
+GROUP BY L2.listing_id,L2.name, C.city) t
+GROUP BY t.city
+ORDER BY count_per_city DESC
+FETCH FIRST ROW ONLY
+;
+
+
+
+
+
+
+
+#Select room types that have average accommodates > 3
+SELECT t.room_type_id,t.room_type,t.avg_accommodates
+FROM
+(SELECT L.room_type_id, R.room_type,AVG(L.accommodates) as avg_accommodates
+FROM Listings L, Room_types R
+WHERE L.room_type_id = R.room_type_id
+GROUP BY L.room_type_id, R.room_type) t
+WHERE t.avg_accommodates > 3
+;
+
+#Listing with rev count per listing
+SELECT L.listing_id,L.name, C.city, count(R.review_id) as rev_counts
+FROM Listings L, Neigh N, Cities C, Reviews R
+WHERE L.listing_id = R.listing_id AND L.neigh_id = N.neigh_id
+AND N.city_id = C.city_id
+GROUP BY L.listing_id,L.name, C.city
+;
+
+#City with highest number of reviews
+SELECT t.city, sum(t.rev_counts) as count_per_city
+FROM
+(SELECT L.listing_id,L.name, C.city, count(R.review_id) as rev_counts
+FROM Listings L, Neigh N, Cities C, Reviews R
+WHERE L.listing_id = R.listing_id AND L.neigh_id = N.neigh_id
+AND N.city_id = C.city_id
+GROUP BY L.listing_id,L.name, C.city) t
+GROUP BY t.city
+ORDER BY count_per_city DESC
+FETCH FIRST ROW ONLY
+;
+
+
+
+
+
+
+12 Should work; change return type and clean up though
+SELECT strict_cp.neigh_id,strict_cp.neigh,
+strict_cp.strict_count, all_cp.all_count
+FROM 
+(SELECT  N.neigh_id,N.neigh, C.city, count(CP.cancellation_policy) as strict_count
+FROM listings L, neigh N, cities C, cancellation_policies CP
+WHERE L.neigh_id = N.neigh_id AND N.city_id = C.city_id 
+AND L.cancellation_policy_id = CP.cancellation_policy_id
+AND C.CITY = 'barcelona'
+AND CP.cancellation_policy = 'strict_14_with_grace_period'
+GROUP BY N.neigh_id, N.neigh, C.city) strict_cp,
+(SELECT  N.neigh_id,N.neigh, C.city, count(CP.cancellation_policy) as all_count
+FROM listings L, neigh N, cities C, cancellation_policies CP
+WHERE L.neigh_id = N.neigh_id AND N.city_id = C.city_id 
+AND L.cancellation_policy_id = CP.cancellation_policy_id
+AND C.CITY = 'barcelona'
+GROUP BY N.neigh_id, N.neigh, C.city) all_cp
+WHERE
+strict_cp.neigh_id = all_cp.neigh_id
+AND (strict_cp.strict_count/all_cp.all_count) >= 0.05
+;
