@@ -11,10 +11,15 @@ min_price = 0;
  //return format: listing_name, listing_url, space, price, city, neigbourhood
  function make_SQL(data){
 
-    var sql_select = `SELECT DISTINCT(L.name), L.listing_url, L.square_feet, L.price, C.city, N.neigh, H.host_name, H.host_url`;
+    var sql_select = `SELECT DISTINCT(L.name), L.listing_url, L.price, C.city, N.neigh, H.host_name, H.host_url`;
 
     console.log(data);
-    sql = sql_select + make_from(data) + make_where(data) + ' FETCH FIRST 10 ROWS ONLY';
+    if(Number.isInteger(Number(data.rows))){
+        var n_rows = data.rows;
+    }else{
+        var n_rows = 10;
+    }
+    sql = sql_select + make_from(data) + make_where(data) + ' FETCH FIRST '+ n_rows + ' ROWS ONLY';
     console.log(sql);
     return sql;
  }

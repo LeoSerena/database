@@ -112,7 +112,7 @@ $(document).ready(function(){
 
 });
 
-//result displayer
+//displays the result of a query
 function display_query(data){
 
     $('.query_result').empty();
@@ -124,7 +124,14 @@ function display_query(data){
     data.rows.forEach(row => {
         let jqRow = $(`<tr>`)
         data.metaData.map(col => col.name).forEach(name => {
-            jqRow.append($(`<td>${row[name]}</td>`))
+            if(name == 'LISTING_URL' || name == 'HOST_URL'){
+                jqRow.append($(`<td><a href = ${row[name]}>link<a></td>`));
+            }else if(name == 'PRICE'){
+                jqRow.append($(`<td>${row[name]}$</td>`))
+            }else{
+                jqRow.append($(`<td>${row[name]}</td>`));
+            }
+
         })
         table.append(jqRow)
     })
@@ -132,9 +139,10 @@ function display_query(data){
 
     var perf = data.perf;
 
-    $('.execution_time').text('execution time: ' + perf);
+    $('.execution_time').text('execution time: ' + Math.trunc(perf) + 'ms');
 }
 
+//displays the title and sql text of asked predefined query
 function display_query_info(id, data){
     $('.query_result').empty();
     $('.execution_time').empty();
@@ -147,7 +155,7 @@ function display_query_info(id, data){
     $('.query_result').append('<button id = '+id+' class = predef_submit_button> Go </button>');
 }
 
-//add info on data
+//add info on data to be sent on server for the query
 function set_data(data){
     data.madrid = $('input[id = "Madrid"]').is(':checked');
     data.barcelona = $('input[id = "Barcelona"]').is(':checked');
@@ -162,9 +170,10 @@ function set_data(data){
     data.netflix = $('input[id = "Netflix"]').is(':checked');
     data.wine_cooler = $('input[id = "Wine"]').is(':checked');
     data.bidet = $('input[id = "Bidet"]').is(':checked');
+    data.rows = $('input[id = "rows"]').val();
 }
 
-
+//creates the predefined buttons set
 function create_predefined(){
     holder = $('#predefined_holder')
     holder_1 = $('<ul>');
@@ -175,6 +184,7 @@ function create_predefined(){
     holder.append(holder_1);
 }
 
+//adds the listener to the go button for the predefined queries
 function add_predef_submit_listener(){
     $('.predef_submit_button').click(function(e){
         e.preventDefault();
@@ -222,4 +232,5 @@ function create_options(){
     amenities.forEach(el => {
         $('#options_holder').append(`<li><input type = "checkbox" id = ${el}>${el}</li><br>`);
     });
+    $('#options_holder').append(`<li>number of rows: <input type = "number" id = rows></li>`)
 }
