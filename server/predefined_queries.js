@@ -293,6 +293,15 @@ const queries = [
         AND (strict_cp.strict_count/all_cp.all_count) >= 0.05`
     }
 ]
+
+function get_predef_info(res, id){
+    result = {};
+    result.title = queries[id].title;
+    result.sql = queries[id].sql;
+    res.send(result);
+}
+
 module.exports = {
-    predef_queries : queries
+    predef_queries : queries,
+    get_predef_info : get_predef_info
 };

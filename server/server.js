@@ -1,6 +1,7 @@
 var express = require('express');
 var connection = require('./connection');
 var query_maker = require('./query_maker')
+var predefined_queries = require('./predefined_queries');
 
 var app = express();
 app.use(express.json());
@@ -23,12 +24,17 @@ app.post('/special_query',  function(req, res){
    sql = query_maker.make_SQL(data)
    connection.doQuery(res, sql);
 });
-
 app.post('/predef_query', function(req, res){
    var id = JSON.stringify(req.body);
    id = JSON.parse(id).id;
    console.log('query id: ' + id);
    connection.doPredef(res, id)
+});
+app.post('/predef_query_info', function(req, res){
+   var id = JSON.stringify(req.body);
+   id = JSON.parse(id).id;
+   console.log('query id: ' + id);
+   predefined_queries.get_predef_info(res, id)
 })
 
 var server = app.listen(8081, function () {

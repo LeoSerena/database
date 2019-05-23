@@ -1,19 +1,18 @@
 $(document).ready(function(){
 
     create_predefined();
-
+    create_options();
 
     //query button handler
     $('#submit').click(function(e){
         e.preventDefault();
-        var query = $('#query').val();
+        var l_name_search = $('.l_name_search').val();
         var data = {};
-        data.query = query;
-        if(query == 'bigg yoshi'){
+        data.l_name_search = l_name_search;
+        if(l_name_search == 'bigg yoshi'){
             console.log('bigg yoshi mod activated');
             $('body').css({'background-image': 'url("bigg_yoshi.jpg")'});
         }else{
-
             set_data(data);
             console.log(data);
             $.ajax({
@@ -32,30 +31,31 @@ $(document).ready(function(){
     });
 
     //predefined query button handler
-    $('.predef_button').click(function(e){
+    $('.predef_info_button').click(function(e){
         e.preventDefault();
-        console.log('button pressed');
+        console.log('info button pressed');
         var id = this.id;
-        if(id < 1 || id > 22){
-            $('#query_result').text('The number must hold between 1 and 22');
-        }else{
-            console.log('id sent: ' + id);
-            var data = {};
-            data.id = id;
-            $.ajax({
-                type : 'POST',
-                url : '/predef_query',
-                data : JSON.stringify(data),
-                contentType : 'application/json',
-                success : function(data){
-                    display_query(data);
-                },
-                error(err){
-                    $('#query_result').text(err);
-                }
-            });
-    }
+        console.log('id sent: ' + id);
+        var data = {};
+        data.id = id;
+        $.ajax({
+            type : 'POST',
+            url : '/predef_query_info',
+            data : JSON.stringify(data),
+            contentType : 'application/json',
+            success : function(data){
+                display_query_info(id, data);
+                add_predef_submit_listener();
+            },
+            error(err){
+                $('#query_result').text(err);
+            }
+        });
+
     });
+    //predef
+
+
 
     //navigation button
     $('#go_index').click(function(){
@@ -110,22 +110,6 @@ $(document).ready(function(){
       });
     }
 
-    //cities selection
-    var cities = ['Madrid', 'Barcelona', 'Berlin'];
-    $('#options_holder').append(`<h4>City<h4>`);
-    cities.forEach(el => {
-        $('#options_holder').append(`<input type = "checkbox" name = ${el}>${el}<br>`);
-    });
-    //date availability
-    $('#options_holder').append(`<h4>Availability<h4>`);
-    $('#options_holder').append(`<p>From:</p> <input type = date name = date_from class = date_input> <br> 
-        <p>To: </p> <input type = date name = date_to class = date_input>`);
-    //price selection
-    $('#options_holder').append(`<h4>Price</h4>`);
-    $('#options_holder').append(`<p>From:</p> <input type = number name = price_from min = "0" class = price_input> <p>To</p> <input type = number name = price_to min = "0" class = price_input>`);
-
-
-
 });
 
 //result displayer
@@ -147,18 +131,37 @@ function display_query(data){
     $('.query_result').append(table);
 
     var perf = data.perf;
-    $('.execution_time').text('execution time: ' + perf + 'ms');
+
+    $('.execution_time').text('execution time: ' + perf);
+}
+
+function display_query_info(id, data){
+    $('.query_result').empty();
+    $('.execution_time').empty();
+    console.log(data);
+    holder = $('<div>');
+    holder.append("<p id = title> title: " + data.title + "</p>");
+    holder.append('<br>');
+    holder.append("<p id = sql> SQL: " + data.sql + "</p>");
+    $('.query_result').append(holder);
+    $('.query_result').append('<button id = '+id+' class = predef_submit_button> Go </button>');
 }
 
 //add info on data
 function set_data(data){
-    data.madrid = $('input[name = "Madrid"]').is(':checked');
-    data.barcelona = $('input[name = "Barcelona"]').is(':checked');
-    data.berlin = $('input[name = "Berlin"]').is(':checked');
-    data.date_from = $('input[name = "date_from"]').val();
-    data.date_to = $('input[name = "date_to"]').val();
-    data.price_from = $('input[name = "price_from"]').val();
-    data.price_to = $('input[name = "price_to"]').val();
+    data.madrid = $('input[id = "Madrid"]').is(':checked');
+    data.barcelona = $('input[id = "Barcelona"]').is(':checked');
+    data.berlin = $('input[id = "Berlin"]').is(':checked');
+    data.date_from = $('input[id = "date_from"]').val();
+    data.date_to = $('input[id = "date_to"]').val();
+    data.price_from = $('input[id = "price_from"]').val();
+    data.price_to = $('input[id = "price_to"]').val();
+    data.toilet_paper = $('input[id = "Toilet"]').is(':checked');
+    data.ethernet_connection = $('input[id = "Ethernet"]').is(':checked');
+    data.fax_machine = $('input[id = "Fax"]').is(':checked');
+    data.netflix = $('input[id = "Netflix"]').is(':checked');
+    data.wine_cooler = $('input[id = "Wine"]').is(':checked');
+    data.bidet = $('input[id = "Bidet"]').is(':checked');
 }
 
 
@@ -167,7 +170,56 @@ function create_predefined(){
     holder_1 = $('<ul>');
     var i;
     for(i=1; i<=12; i++){
-        holder_1.append("<li><button class = 'predef_button' id = " + i + "> Querry" +i+"</button></li>");
+        holder_1.append("<li><button class = 'predef_info_button' id = " + i + "> Querry" +i+"</button></li>");
     }
     holder.append(holder_1);
+}
+
+function add_predef_submit_listener(){
+    $('.predef_submit_button').click(function(e){
+        e.preventDefault();
+        console.log('button pressed');
+        var id = this.id;
+        console.log('id sent: ' + id);
+        var data = {};
+        data.id = id;
+        $.ajax({
+            type : 'POST',
+            url : '/predef_query',
+            data : JSON.stringify(data),
+            contentType : 'application/json',
+            success : function(data){
+                display_query(data);
+            },
+            error(err){
+                $('.query_result').text(err);
+            }
+        });
+
+    });    
+}
+
+//creates the collapsible options
+function create_options(){
+    //cities selection
+    var cities = ['Madrid', 'Barcelona', 'Berlin'];
+
+    $('#options_holder').append(`<ul><b><u>City<u><b><ul>`);
+    cities.forEach(el => {
+        $('#options_holder').append(`<li><input type = "checkbox" id = ${el}>${el}</li><br>`);
+    });
+    //date availability
+    $('#options_holder').append(`<ul><b><u>Availability<u><b><ul>`);
+    $('#options_holder').append(`<li>From:<input type = date id = date_from class = date_input> </li> 
+        <li>To: <input type = date id = date_to class = date_input></li>`);
+    //price selection
+    $('#options_holder').append(`<ul><b><u>Price<u><b></ul>`);
+    $('#options_holder').append(`<li>From: <input type = number id = price_from min = "0" class = price_input> </li>
+        <li>To: <input type = number id = price_to min = "0" class = price_input></li>`);
+    //amenities selection
+    var amenities = ['Toilet paper', 'Ethernet connection', 'Fax machine', 'Netflix', 'Wine cooler', 'Bidet'];
+    $('#options_holder').append(`<ul><b><u>Amenities<u><b></ul>`);
+    amenities.forEach(el => {
+        $('#options_holder').append(`<li><input type = "checkbox" id = ${el}>${el}</li><br>`);
+    });
 }
