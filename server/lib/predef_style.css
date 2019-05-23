@@ -1,0 +1,101 @@
+.holder{
+    position : absolute;
+    left : 38%;
+    top : 200px;
+}
+
+.result_holder {
+    text-align: center;
+    position : relative;
+}
+.query_holder {
+    text-align: center;
+    position : relative;
+}
+table {
+    border : 1px solid blue;
+}
+
+table td {
+    background-color : #8888;
+    margin : 10px;
+    color : black;
+    text-decoration: none;
+}
+
+#Rheader {
+    text-decoration: underline;
+}
+
+.collapsible {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 18px;
+    width: 20%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+    align-self: left;
+  }
+  
+  .active, .collapsible:hover {
+    background-color: #ccc;
+  }
+  
+  .content {
+    padding: 0 18px;
+    display: none;
+    overflow: hidden;
+    background-color: #f1f1f1;
+    width: 16%;
+  }
+
+.header {
+    background-color: #eeee;
+    border : 1px solid #ccc;
+    background-color: #f1f1f1;
+
+}
+
+.header button {
+    background-color: inherit;
+}
+
+body {
+    background-image: none;
+}
+
+#nav li {
+    color : red;
+}
+
+#submit{
+    padding : 1px;
+    margin : 1px;
+    align-self: left;
+}
+
+#options_holder h4 {
+    font-weight: bolder;
+    left : 3px;
+}
+
+#options_holder p {
+    left : 15px;
+}
+
+#options_holder .date_input{
+    width : 51%;
+}
+
+#options_holder .price_input{
+    width : 51%
+}
+
+#predefined_holder button{
+    width : 15%;
+    padding : 2px;
+    margin : 2px;
+}

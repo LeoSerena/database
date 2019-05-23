@@ -15,25 +15,16 @@
             <li><a href="predefined.html">predefined queries</a></li>
             <li><a href="/modif.html">modifications</a></li>
         </ul>
-        
-        <button class="collapsible">Options</button>
-        <div class="content">
-            <div id = 'options_holder'></div>
+        <div class = 'query_holder'>
+            <input type = 'text' size = '100' placeholder = 'Enter query here' id = 'query'>
+            <br>
+            <button id = 'submit'>submit</button>
         </div>
 
-        <div class = 'holder'>
-            <div class = 'query_holder'>
-                <input type = 'text' size = '50' placeholder = 'Enter query here' id = 'query'>
-                <br>
-                <button id = 'submit'>submit</button>
-            </div>
-    
-            <div class = 'result_holder'>
-                <p class = 'execution_time'></p>
-                <div class = 'query_result'></div>
-            </div>
+        <div class = 'result_holder'>
+            <p class = 'execution_time'></p>
+            <div class = 'query_result'></div>
         </div>
-
 
         <script src = "func.js"></script>
     </body>

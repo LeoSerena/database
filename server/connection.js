@@ -1,6 +1,7 @@
 const oracledb = require('oracledb');
 oracledb.outFormat = oracledb.OBJECT;
 const predef_Q = require('./predefined_queries');
+const { PerformanceObserver, performance } = require('perf_hooks');
 
 var hostname = "cs322-db.epfl.ch"
 var port = 1521
@@ -15,6 +16,9 @@ module.exports = {
   close_connection : closePoolAndExit
 };
 
+/**
+ * this function opens a connection
+ */
 async function init(){
   try{
     await oracledb.createPool({
@@ -29,6 +33,11 @@ async function init(){
     }
 }
 
+/**
+ * This function is a wrapper of the doQuery function performing the corresponding query to the id
+ * @param {the address where the result will be sent} res 
+ * @param {the predefined query id} id 
+ */
 async function doPredef(res, id){
   query = predef_Q.predef_queries[id-1];
   title = query.title;
@@ -38,43 +47,62 @@ async function doPredef(res, id){
   doQuery(res, sql);
 }
 
+/**
+ * This function opens a connection and performs a query, then closes the connection
+ * @param {the address where the result will be sent} res 
+ * @param {the SQL query that will be performed on the server} sql 
+ */
 async function doQuery(res, sql) {
+    await init();
     let connection;
     let result;
     try {
       // Get a connection from the default pool
       connection = await oracledb.getConnection();
       let options = { outFormat: oracledb.OBJECT };
+      var t0 = performance.now();
       result = await connection.execute(sql, [], options);
-      //console.log(result);
+      console.log(result);
     } catch (err) {
       console.error(err);
-    } finally { 
+    } finally {
       if (connection) {
         try {
+          var t1 = performance.now();
+          var perf = t1 - t0;
           // Put the connection back in the pool
           console.log('returning result');
-          display(result, res);
+          display(result, perf, res);
         } catch (err) {
           console.error(err);
+        } finally{
+          closePoolAndExit();
         }
       }
     }
   }
 
+  /**
+   * this function closes the connection
+   */
   async function closePoolAndExit() {
     console.log('\nTerminating');
     try {
       await oracledb.getPool().close(10);
-      console.log('Pool closed');
-      process.exit(0);
     } catch(err) {
       console.error(err.message);
-      process.exit(1);
+    } finally{
+      console.log('Pool closed');
     }
   }
 
-
-  function display(result, res){
-    res.send(JSON.stringify(result));
+  /**
+   * this function adds the performance to the result and sends the data
+   * @param {the result of the query} result 
+   * @param {the time that the query took in ms} perf 
+   * @param {the address where the result will be sent} res 
+   */
+  function display(result, perf, res){
+    result['perf'] = perf;
+    res.send(result);
  };
