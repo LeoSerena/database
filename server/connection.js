@@ -7,7 +7,7 @@ var hostname = "cs322-db.epfl.ch"
 var port = 1521
 var sid = "ORCLCDB"
 var username = "C##DB2019_G39"
-var password = "DB2019_G39"
+var password = "DB2019_G39"   
 
 module.exports = {
   doQuery : doQuery,
@@ -21,10 +21,8 @@ module.exports = {
  * @param {the predefined query id} id 
  */
 async function doPredef(res, id){
-  query = predef_Q.predef_queries[id-1];
+  query = predef_Q.predef_queries[id];
   sql = query.sql;
-  console.log('id: ' + id);
-  console.log('sql: ' + sql);
   doQuery(res, sql);
 }
 
@@ -46,6 +44,7 @@ async function doPredef(res, id){
  * @param {the SQL query that will be performed on the server} sql 
  */
 async function doQuery(res, sql) {
+  console.log(sql);
   try{
     oracledb.getConnection({
       user:           username,
@@ -54,15 +53,16 @@ async function doQuery(res, sql) {
     },
     function(err, connection){
       if(err){
-        res.send(err);
+        console.log(err);
         return;
       }
       var t0 = performance.now();
+      console.log('connection established');
       connection.execute(
         sql,
         function(err, result){
           if(err){
-            res.send(err);
+            console.log(err);
             doRelease(connection)
             return;
           }else{
@@ -86,5 +86,6 @@ function doRelease(connection) {
       if (err) {
         console.error(err.message);
       }
-    });
+    }
+  );
 }

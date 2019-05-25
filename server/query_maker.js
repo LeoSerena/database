@@ -10,18 +10,21 @@ min_price = 0;
 
  //return format: listing_name, listing_url, space, price, city, neigbourhood
  function make_SQL(data){
-
-    var sql_select = `SELECT DISTINCT(L.name), L.listing_url, L.price, C.city, N.neigh, H.host_name, H.host_url`;
-
-    console.log(data);
-    if(Number.isInteger(Number(data.rows))){
-        var n_rows = data.rows;
+    if(data.full_query){
+        return full_query(data);
     }else{
-        var n_rows = 10;
+        var sql_select = `SELECT L.name, L.listing_url, L.price, C.city, N.neigh, H.host_name, H.host_url, L.LISTING_ID`;
+
+        console.log(data);
+        if(data.rows != ''){
+            var n_rows = data.rows;
+        }else{
+            var n_rows = 10;
+        }
+        sql = sql_select + make_from(data) + make_where(data) + ' FETCH FIRST '+ n_rows + ' ROWS ONLY';
+        console.log(sql);
+        return sql;
     }
-    sql = sql_select + make_from(data) + make_where(data) + ' FETCH FIRST '+ n_rows + ' ROWS ONLY';
-    console.log(sql);
-    return sql;
  }
 
 
@@ -103,4 +106,13 @@ min_price = 0;
         }
     }
     return sql_where;
+}
+
+function full_query(data){
+    id = data.id;
+    sql = `
+    SELECT *
+    FROM LISTINGS L
+    WHERE LISTING_ID = ` + id;
+    return sql;
 }

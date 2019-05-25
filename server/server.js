@@ -18,7 +18,7 @@ app.get('/modif.html', function(req, res){
    res.sendFile(__dirname + '/' + 'modif.html');
 });
 
-app.post('/special_query',  function(req, res){
+app.post('/search_query',  function(req, res){
    var data = JSON.stringify(req.body);
    data = JSON.parse(data);
    sql = query_maker.make_SQL(data)
@@ -27,7 +27,6 @@ app.post('/special_query',  function(req, res){
 app.post('/predef_query', function(req, res){
    var id = JSON.stringify(req.body);
    id = JSON.parse(id).id;
-   console.log('query id: ' + id);
    connection.doPredef(res, id)
 });
 app.post('/predef_query_info', function(req, res){

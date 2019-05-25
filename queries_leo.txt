@@ -82,7 +82,20 @@ WHERE L.PROPERTY_TYPE_ID = PT.PROPERTY_TYPE_ID
   ORDER BY AVG(C.price)
 FETCH FIRST 5 ROWS ONLY;
 
-7) aucune idée de comment sortir 3 éléments pour chaque élément d'une table
+5) ok
+SELECT 
+  NAME, ACCOMMODATES, REVIEW_SCORES_RATING
+FROM 
+  (SELECT 
+    L.name, L.Accommodates, L.review_scores_rating, ROW_NUMBER() OVER (PARTITION BY L.Accommodates ORDER BY L.Review_scores_rating DESC) rank
+  FROM
+    Listings L
+  WHERE 
+    L.REVIEW_SCORES_RATING IS NOT NULL)
+WHERE
+  RANK < 6;
+
+7)
 
 10)
 SELECT DISTINCT(N.NEIGH)

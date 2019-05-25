@@ -15,15 +15,19 @@
             <li><a href="predefined.html">predefined queries</a></li>
             <li><a href="/modif.html">modifications</a></li>
         </ul>
-        <div class = 'query_holder'>
-            <input type = 'text' size = '100' placeholder = 'Enter query here' id = 'query'>
-            <br>
-            <button id = 'submit'>submit</button>
-        </div>
+        
+        <div class = 'modif_holder'>
+            <div id = 'deletion_holder'>
+                <p>DELETION</p>
+                <input id = del_tab_name type = 'text' placeholder="enter table name...">
+                <button id = del_tab_name_submit>submit</button>
+                <br>
+                <input id = del_listing_id type = 'text' placeholder="enter listing id...">
+                <button id = del_tab_name_submit>submit</button>
+            </div>
+            <div id = 'insertion_holder'>
 
-        <div class = 'result_holder'>
-            <p class = 'execution_time'></p>
-            <div class = 'query_result'></div>
+            </div>
         </div>
 
         <script src = "func.js"></script>

@@ -20,14 +20,12 @@ const queries = [
         id : 3,
         title : "Print	all	the	hosts	who	have	an	available	property	between	date	03.2019	and	09.2019",
         sql : `SELECT DISTINCT(H.HOST_NAME)
-        FROM hosts H, listings L
+        FROM hosts H, listings L, CALENDAR C
         WHERE H.host_id = L.host_id
-          AND 'f' NOT IN 
-            (SELECT C.available
-            FROM calendar C
-            WHERE C.LISTING_ID = L.LISTING_ID
-              AND C.DATE_CALENDAR > TO_DATE('2019-03-01','yyyy-mm-dd')
-              AND C.DATE_CALENDAR < TO_DATE('2019-09-01','yyyy-mm-dd'))`
+            AND C.listing_id = L.listing_id
+            AND C.available = 't'
+            AND C.date_calendar > TO_DATE('2019-03-01','yyyy-mm-dd')
+            AND C.date_calendar < TO_DATE('2019-09-01','yyyy-mm-dd')`
     },
     {
         id : 4,
@@ -93,7 +91,7 @@ const queries = [
     {   
         id : 10,
         title : "Find	the	top-10	rated	(review_score_rating)	apartments	(id,name)	in	Barcelona.",
-        sql : `SELECT L.listing_id, L.name, L.review_scores_rating
+        sql : `SELECT L.listing_id AS id, L.name, L.review_scores_rating
         FROM listings L, neigh N, cities C
         WHERE review_scores_rating IS NOT NULL AND L.neigh_id = N.neigh_id
         AND N.city_id = C.city_id and C.CITY = 'barcelona'
@@ -126,25 +124,25 @@ const queries = [
         title : "Find all the hosts (host_ids, host_names) with the highest number of listings.",
         sql : `SELECT hosts_by_count.host_id, hosts_by_count.host_name, hosts_by_count.counts
         FROM
-        (SELECT H.host_id, H.host_name, COUNT(L.listing_id) as counts
-        FROM HOSTS H,LISTINGS L
-        WHERE H.HOST_ID = L.HOST_ID
-        GROUP BY H.host_id,H.host_name
-        ORDER BY COUNT(L.listing_id) DESC
-        ) hosts_by_count,
-        (SELECT max(t.counts) as max_val
-        FROM
-        (SELECT H.host_id, COUNT(L.listing_id) as counts
-        FROM HOSTS H,LISTINGS L
-        WHERE H.HOST_ID = L.HOST_ID
-        GROUP BY H.host_id,H.host_name
-        ) t ) max_count
+            (SELECT H.host_id, H.host_name, COUNT(L.listing_id) as counts
+            FROM HOSTS H,LISTINGS L
+            WHERE H.HOST_ID = L.HOST_ID
+            GROUP BY H.host_id,H.host_name
+            ORDER BY COUNT(L.listing_id) DESC) hosts_by_count,
+            (SELECT max(t.counts) as max_val
+            FROM
+                (SELECT H.host_id, COUNT(L.listing_id) as counts
+                FROM HOSTS H,LISTINGS L
+                WHERE H.HOST_ID = L.HOST_ID
+                GROUP BY H.host_id,H.host_name
+                )
+             t ) max_count
         WHERE hosts_by_count.counts = max_count.max_val`
     },
     {
         id : 14,
         title : "Find the 5 most cheapest Apartments (based on average price within the available dates) in Berlin available for at least one day between 01-03-2019 and 30-04-2019 having at least 2 beds, a location review score of at least 8, flexible cancellation, and listed by a host with a verifiable government id. ",
-        sql : `SELECT DISTINCT(L.LISTING_ID), AVG(C.PRICE)
+        sql : `SELECT DISTINCT(L.LISTING_ID) AS ID, AVG(C.PRICE)
         FROM LISTINGS L, PROPERTY_TYPES PT, NEIGH N, CITIES City, CALENDAR C, CANCELLATION_POLICIES CP, HOSTS H, HOST_VERIF_AND_HOST HVH, HOST_VERIFICATIONS HV
         WHERE L.PROPERTY_TYPE_ID = PT.PROPERTY_TYPE_ID
           AND PT.PROPERTY_TYPE = 'Apartment'
@@ -165,17 +163,27 @@ const queries = [
           AND HV.HOST_VERIFICATION = ' government_id'
           GROUP BY L.LISTING_ID
           ORDER BY AVG(C.price)
-        FETCH FIRST 5 ROWS ONLY;`
+        FETCH FIRST 5 ROWS ONLY`
     },
     {
         id : 15,
         title : "Each property can accommodate different number of people (1 to 16).  Find the top-5 rated (review_score_rating) listings for each distinct category based on number of accommodated guests with at least two of these facilities: Wifi, Internet, TV, and Free street parking. ",
-        sql : ``
+        sql : `SELECT 
+        NAME, ACCOMMODATES, REVIEW_SCORES_RATING
+      FROM 
+        (SELECT 
+          L.name, L.Accommodates, L.review_scores_rating, ROW_NUMBER() OVER (PARTITION BY L.Accommodates ORDER BY L.Review_scores_rating DESC) rank
+        FROM
+          Listings L
+        WHERE 
+          L.REVIEW_SCORES_RATING IS NOT NULL)
+      WHERE
+        RANK < 6`
     },
     {
         id : 16,
         title : "What are top three busiest listings per host? The more reviews a listing has, the busier the listing is.",
-        sql : `SELECT t2.host_id, t2.listing_id, t2.rev_counts, t2.top_n
+        sql : `SELECT t2.host_id, t2.name, t2.rev_counts, t2.top_n
         FROM
         (SELECT t.host_id,t.listing_id,t.rev_counts , row_number() over (partition by t.host_id ORDER BY t.rev_counts DESC) as top_n
         FROM
@@ -184,7 +192,7 @@ const queries = [
         WHERE L.listing_id = R.listing_id
         GROUP BY L.host_id,L.listing_id
         ORDER BY COUNT(L.listing_id) DESC) t ) t2
-        WHERE t2.top_n <= 3`
+        WHERE t2.top_n <= 3 FETCH FIRST 20 ROWS ONLY`
     },
     {
         id : 17,
@@ -245,29 +253,29 @@ const queries = [
     {
         id : 21,
         title : "Print all the countries that in 2018 had at least 20% of their listings available. ",
-        sql : `SELECT AVAIL_RATIO2.*, 'Spain' AS COUNTRY
-        FROM (  SELECT T1.NUM_AVAIL_DATE / T2.NUM_DATE AS AVAIL_RATIO
-                FROM (  SELECT COUNT(*) AS NUM_AVAIL_DATE
-                        FROM CALENDAR C JOIN LISTINGS L ON C.LISTING_ID=L.LISTING_ID JOIN NEIGH N ON N.NEIGH_ID=L.NEIGH_ID
-                          JOIN CITIES CIT ON CIT.CITY_ID=N.CITY_ID JOIN COUNTRIES CTRI ON CTRI.COUNTRY_ID=CIT.COUNTRY_ID
-                        WHERE C.DATE_CALENDAR BETWEEN '2018-01-01' AND '2018-12-31' AND CTRI.COUNTRY='Spain' AND C.AVAILABLE = 't') T1,
-                     (  SELECT COUNT(*) AS NUM_DATE
-                        FROM CALENDAR C JOIN LISTINGS L ON C.LISTING_ID=L.LISTING_ID JOIN NEIGH N ON N.NEIGH_ID=L.NEIGH_ID
-                          JOIN CITIES CIT ON CIT.CITY_ID=N.CITY_ID JOIN COUNTRIES CTRI ON CTRI.COUNTRY_ID=CIT.COUNTRY_ID
-                        WHERE C.DATE_CALENDAR BETWEEN '2018-01-01' AND '2018-12-31' AND CTRI.COUNTRY='Spain') T2) AVAIL_RATIO2
-        WHERE AVAIL_RATIO2.AVAIL_RATIO>=0.2
-        UNION
-        SELECT AVAIL_RATIO2.*, 'Germany' AS COUNTRY
-        FROM (  SELECT T1.NUM_AVAIL_DATE / T2.NUM_DATE AS AVAIL_RATIO
-                FROM (  SELECT COUNT(*) AS NUM_AVAIL_DATE
-                        FROM CALENDAR C JOIN LISTINGS L ON C.LISTING_ID=L.LISTING_ID JOIN NEIGH N ON N.NEIGH_ID=L.NEIGH_ID
-                          JOIN CITIES CIT ON CIT.CITY_ID=N.CITY_ID JOIN COUNTRIES CTRI ON CTRI.COUNTRY_ID=CIT.COUNTRY_ID
-                        WHERE C.DATE_CALENDAR BETWEEN '2018-01-01' AND '2018-12-31' AND CTRI.COUNTRY='Germany' AND C.AVAILABLE = 't') T1,
-                     (  SELECT COUNT(*) AS NUM_DATE
-                        FROM CALENDAR C JOIN LISTINGS L ON C.LISTING_ID=L.LISTING_ID JOIN NEIGH N ON N.NEIGH_ID=L.NEIGH_ID
-                          JOIN CITIES CIT ON CIT.CITY_ID=N.CITY_ID JOIN COUNTRIES CTRI ON CTRI.COUNTRY_ID=CIT.COUNTRY_ID
-                        WHERE C.DATE_CALENDAR BETWEEN '2018-01-01' AND '2018-12-31' AND CTRI.COUNTRY='Germany') T2) AVAIL_RATIO2
-        WHERE AVAIL_RATIO2.AVAIL_RATIO>=0.2`
+        sql : `
+        SELECT ALL_TAB.COUNTRY, AV_TAB.NUM_AVAIL_LIST_IN_2018/ALL_TAB.NUM_LIST_IN_2018 AS RATIO
+FROM (  SELECT COUNT(DISTINCT L.LISTING_ID) AS NUM_LIST_IN_2018, CTRI.COUNTRY
+        FROM CALENDAR C 
+          JOIN LISTINGS L ON C.LISTING_ID=L.LISTING_ID
+          JOIN NEIGH N ON L.NEIGH_ID=N.NEIGH_ID
+          JOIN CITIES CIT ON N.CITY_ID=CIT.CITY_ID
+          JOIN COUNTRIES CTRI ON CIT.COUNTRY_ID=CTRI.COUNTRY_ID
+        WHERE C.DATE_CALENDAR > TO_DATE('2018-01-01','yyyy-mm-dd')
+          AND C.DATE_CALENDAR < TO_DATE('2018-12-31','yyyy-mm-dd')
+        GROUP BY CTRI.COUNTRY) ALL_TAB
+        JOIN
+    ( SELECT COUNT(DISTINCT L.LISTING_ID) AS NUM_AVAIL_LIST_IN_2018, CTRI.COUNTRY
+      FROM CALENDAR C 
+        JOIN LISTINGS L ON C.LISTING_ID=L.LISTING_ID
+        JOIN NEIGH N ON L.NEIGH_ID=N.NEIGH_ID
+        JOIN CITIES CIT ON N.CITY_ID=CIT.CITY_ID
+        JOIN COUNTRIES CTRI ON CIT.COUNTRY_ID=CTRI.COUNTRY_ID
+        WHERE C.DATE_CALENDAR > TO_DATE('2018-01-01','yyyy-mm-dd')
+          AND C.DATE_CALENDAR < TO_DATE('2018-12-31','yyyy-mm-dd')
+        AND C.AVAILABLE='t'
+      GROUP BY CTRI.COUNTRY) AV_TAB ON ALL_TAB.COUNTRY=AV_TAB.COUNTRY
+WHERE AV_TAB.NUM_AVAIL_LIST_IN_2018/ALL_TAB.NUM_LIST_IN_2018>=0.2`
     },
     {
         id : 22,

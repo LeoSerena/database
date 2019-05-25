@@ -1,6 +1,6 @@
 .holder{
     position : absolute;
-    top : 100px;
+    top : 150px;
     text-align: center;
     width : 70%;
     left : 20%;
@@ -38,9 +38,19 @@
     background-color: #f1f1f1;
 }
 #predefined_holder button{
-    width : 15%;
-    padding : 2px;
-    margin : 2px;
+    width : 10%;
+}
+.predef_info_button_2{
+    background-color: aqua;
+    transition-duration: 0.1s;
+    margin: 1px;
+}
+#predefined_holder button:hover {
+    background-color:blue;
+    color: white;
+}
+.predef_info_button_3{
+    background-color: aquamarine;
 }
 
 table {
@@ -54,7 +64,7 @@ table td {
     text-decoration: none;
 }
 
-#Rheader {
+.Rheader {
     text-decoration: underline;
 }
 
