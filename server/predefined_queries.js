@@ -283,7 +283,32 @@ const queries = [
     {
         id : 20,
         title : "Print all the neighborhoods in Madrid which have at least 50 percent of their listings occupied in year 2019 and their host has joined airbnb before 01.06.2017 ",
-        sql : ``
+        sql : `WITH temp AS(  
+            SELECT 
+              NEIGH_ID, COUNT(*) N
+            FROM
+              (SELECT
+                L.NEIGH_ID, ROW_NUMBER() OVER (PARTITION BY L.NEIGH_ID ORDER BY L.NEIGH_ID, C.DATE_CALENDAR) ROW_NUM
+              FROM
+                (SELECT
+                  L.LISTING_ID, L.NEIGH_ID
+                FROM
+                  LISTINGS L,
+                  HOSTS H
+                WHERE H.HOST_ID = L.LISTING_ID
+                  AND H.HOST_SINCE < TO_DATE('2017-06-02','yyyy-mm-dd')) L,
+                  CALENDAR C
+              WHERE C.LISTING_ID = L.LISTING_ID
+                AND C.DATE_CALENDAR > TO_DATE('2019-03-01','yyyy-mm-dd')
+                AND C.DATE_CALENDAR < TO_DATE('2019-09-01','yyyy-mm-dd')
+                AND C.AVAILABLE = 't')
+            GROUP BY NEIGH_ID)
+            
+          SELECT N.NEIGH 
+          FROM 
+            temp T, NEIGH N 
+          WHERE T.N > 182
+            AND N.NEIGH_ID = T.NEIGH_ID`
     },
     {
         id : 21,
