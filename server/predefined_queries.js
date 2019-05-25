@@ -169,7 +169,7 @@ const queries = [
         id : 15,
         title : "Each property can accommodate different number of people (1 to 16).  Find the top-5 rated (review_score_rating) listings for each distinct category based on number of accommodated guests with at least two of these facilities: Wifi, Internet, TV, and Free street parking. ",
         sql : `WITH temp AS(
-            SELECT L.name, L.accommodates, L.review_scores_rating
+            SELECT DISTINCT(L.listing_id), L.name, L.accommodates, L.review_scores_rating
             FROM Listings L, AMENITIES A1, AMENITIES A2, AMENITIES_AND_LISTINGS A_A_L1, AMENITIES_AND_LISTINGS A_A_L2
             WHERE L.listing_id = A_A_L1.listing_id
               AND L.listing_id = A_A_L2.listing_id
@@ -177,10 +177,10 @@ const queries = [
               AND A_A_L2.amenity_id = A2.amenity_id
               AND ((A1.amenity = 'Wifi' AND A2.amenity = 'Internet') 
                     OR (A1.amenity = 'Wifi' AND A2.amenity = 'TV') 
-                    OR (A1.amenity = 'Internet' AND A2.amenity = 'TV')) )
+                    OR (A1.amenity = 'Internet' AND A2.amenity = 'TV')))
           
           SELECT 
-            NAME, ACCOMMODATES, REVIEW_SCORES_RATING
+            ACCOMMODATES, REVIEW_SCORES_RATING, NAME
           FROM 
             (SELECT 
               L.name, L.Accommodates, L.review_scores_rating, ROW_NUMBER() OVER (PARTITION BY L.Accommodates ORDER BY L.Review_scores_rating DESC) rank
@@ -189,7 +189,7 @@ const queries = [
             WHERE 
               L.REVIEW_SCORES_RATING IS NOT NULL)
           WHERE
-              RANK < 6;`
+              RANK < 6`
     },
     {
         id : 16,
@@ -208,7 +208,31 @@ const queries = [
     {
         id : 17,
         title : "What are the three most frequently used amenities at each neighborhood in Berlin for the listings with “Private Room” room type? ",
-        sql : ``
+        sql : `SELECT N.NEIGH, A.AMENITY
+        FROM
+          (SELECT 
+            NEIGH_ID N_ID, AMENITY_ID A_ID, ROW_NUMBER() OVER (PARTITION BY NEIGH_ID ORDER BY CNT) ROW_N
+          FROM 
+            (SELECT
+              NEIGH_ID, AMENITY_ID, COUNT(*) CNT
+            FROM 
+              (SELECT 
+                N.NEIGH_ID, A_A_L.AMENITY_ID
+                FROM
+                  LISTINGS L, ROOM_TYPES RT, NEIGH N, CITIES C, AMENITIES_AND_LISTINGS A_A_L
+                WHERE L.ROOM_TYPE_ID = RT.ROOM_TYPE_ID
+                  AND RT.ROOM_TYPE = 'Private room'
+                  AND L.NEIGH_ID = N.NEIGH_ID
+                  AND C.CITY_ID = N.CITY_ID
+                  AND C.CITY = 'berlin'
+                  AND L.LISTING_ID = A_A_L.LISTING_ID)
+            GROUP BY NEIGH_ID, AMENITY_ID
+            ORDER BY NEIGH_ID)),
+            AMENITIES A,
+            NEIGH N
+        WHERE ROW_N < 4
+          AND A.AMENITY_ID = A_ID
+          AND N.NEIGH_ID = N_ID`
     },
     {
         id : 18,
