@@ -168,17 +168,28 @@ const queries = [
     {
         id : 15,
         title : "Each property can accommodate different number of people (1 to 16).  Find the top-5 rated (review_score_rating) listings for each distinct category based on number of accommodated guests with at least two of these facilities: Wifi, Internet, TV, and Free street parking. ",
-        sql : `SELECT 
-        NAME, ACCOMMODATES, REVIEW_SCORES_RATING
-      FROM 
-        (SELECT 
-          L.name, L.Accommodates, L.review_scores_rating, ROW_NUMBER() OVER (PARTITION BY L.Accommodates ORDER BY L.Review_scores_rating DESC) rank
-        FROM
-          Listings L
-        WHERE 
-          L.REVIEW_SCORES_RATING IS NOT NULL)
-      WHERE
-        RANK < 6`
+        sql : `WITH temp AS(
+            SELECT L.name, L.accommodates, L.review_scores_rating
+            FROM Listings L, AMENITIES A1, AMENITIES A2, AMENITIES_AND_LISTINGS A_A_L1, AMENITIES_AND_LISTINGS A_A_L2
+            WHERE L.listing_id = A_A_L1.listing_id
+              AND L.listing_id = A_A_L2.listing_id
+              AND A_A_L1.amenity_id = A1.amenity_id
+              AND A_A_L2.amenity_id = A2.amenity_id
+              AND ((A1.amenity = 'Wifi' AND A2.amenity = 'Internet') 
+                    OR (A1.amenity = 'Wifi' AND A2.amenity = 'TV') 
+                    OR (A1.amenity = 'Internet' AND A2.amenity = 'TV')) )
+          
+          SELECT 
+            NAME, ACCOMMODATES, REVIEW_SCORES_RATING
+          FROM 
+            (SELECT 
+              L.name, L.Accommodates, L.review_scores_rating, ROW_NUMBER() OVER (PARTITION BY L.Accommodates ORDER BY L.Review_scores_rating DESC) rank
+            FROM
+              temp L
+            WHERE 
+              L.REVIEW_SCORES_RATING IS NOT NULL)
+          WHERE
+              RANK < 6;`
     },
     {
         id : 16,
