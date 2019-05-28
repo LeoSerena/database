@@ -94,7 +94,7 @@ table td {
   }
 
 body {
-    background-image: none;
+    background-image: url('nasty_fabric.png');
 }
 
 #nav li {
@@ -126,3 +126,11 @@ body {
     margin : 2px;
 }
 
+
+.modif_holder{
+    width : 50%;
+    margin : 2px solid black;
+    position : absolute;
+    left : 42%;
+    top : 20%;
+}

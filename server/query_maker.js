@@ -3,7 +3,13 @@
  */
 
  module.exports = {
-     make_SQL : make_SQL
+     make_SQL : make_SQL,
+     test_if_N_in_sql : test_if_N_in_sql,
+     test_if_Ci_in_sql : test_if_Ci_in_sql,
+     test_if_Co_in_sql : test_if_Co_in_sql,
+     insert_N_sql : insert_N_sql,
+     insert_Ci_sql : insert_Ci_sql,
+     insert_Co_sql : insert_Co_sql
  };
 
 min_price = 0;
@@ -114,5 +120,55 @@ function full_query(data){
     SELECT *
     FROM LISTINGS L
     WHERE LISTING_ID = ` + id;
+    return sql;
+}
+
+function test_if_N_in_sql(neigbourhood){
+    sql = `
+    SELECT *
+    FROM NEIGH N
+    WHERE N.neigh = '`
+    + neigbourhood + "'"
+    return sql;
+}
+function test_if_Ci_in_sql(city){
+    sql = `
+    SELECT *
+    FROM CITIES C
+    WHERE C.city = '`
+    + city + "'"
+    return sql;
+}
+function test_if_Co_in_sql(country){
+    sql = `
+    SELECT *
+    FROM COUNTRIES C
+    WHERE C.country = '`
+    + country + "'"
+    return sql;
+}
+
+function insert_N_sql(neigbourhood, city){
+    sql = `
+    INSERT INTO NEIGH (NEIGH_ID, NEIGH, CITY_ID)
+    VALUES ((SELECT MAX(NEIGH_ID) FROM NEIGH) + 1,
+            '` + neigbourhood + `',
+            (SELECT CITY_ID FROM CITIES WHERE CITY = '` + city +`'))`
+    return sql;
+}
+function insert_Ci_sql(city, country){
+    sql = `
+    INSERT INTO CITIES (CITY_ID, CITY, COUNTRY_ID)
+    VALUES ((SELECT MAX(CITY_ID)+1 FROM CITIES) + 1,
+             '` + city + `',
+            (SELECT COUNTRY_ID FROM COUNTRIES WHERE COUNTRY = '` + country +`'))`
+    return sql;
+}
+function insert_Co_sql(country){
+    sql = `
+    INSERT INTO COUNTRIES (COUNTRY_ID, COUNTRY, COUNTRY_CODE)
+    VALUES ((SELECT MAX(COUNTRY_ID) FROM COUNTRIES) + 1,
+             '`+country+`',
+              '` + country.charAt(0) + country.charAt(1) + `')`
     return sql;
 }

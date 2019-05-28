@@ -25,9 +25,9 @@ app.post('/search_query',  function(req, res){
    connection.doQuery(res, sql);
 });
 app.post('/predef_query', function(req, res){
-   var id = JSON.stringify(req.body);
-   id = JSON.parse(id).id;
-   connection.doPredef(res, id)
+   var data = JSON.stringify(req.body);
+   data = JSON.parse(data);
+   connection.doPredef(res, data);
 });
 app.post('/predef_query_info', function(req, res){
    var id = JSON.stringify(req.body);
@@ -35,6 +35,18 @@ app.post('/predef_query_info', function(req, res){
    console.log('query id: ' + id);
    predefined_queries.get_predef_info(res, id)
 })
+app.post('/delete_neighborhood', function(req, res){
+   console.log('delete recieved')
+   var data = JSON.stringify(req.body);
+   data = JSON.parse(data);
+   connection.doDeletion(res, data);
+});
+app.post('/insert_neighborhood', function(req, res){
+   console.log('insert recieved');
+   var data = JSON.stringify(req.body);
+   data = JSON.parse(data);
+   connection.doInsertion(res, data);
+});
 
 var server = app.listen(8081, function () {
    var port = server.address().port;

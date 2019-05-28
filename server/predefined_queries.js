@@ -3,14 +3,14 @@ const queries = [
     {
         id : 1,
         title : "What is	the	average	price for a listing	with 8 bedrooms?",
-        sql : ` SELECT AVG(L.price)
+        sql : ` SELECT AVG(L.price) Average
                 FROM listings L
-                WHERE L.bedrooms = 8`
+                WHERE L.bedrooms = `
     },
     {
         id : 2,
         title : "What	is	the	average	cleaning	review	score	for	listings	with	TV?",
-        sql : `SELECT AVG(L.review_scores_cleanliness)
+        sql : `SELECT AVG(L.review_scores_cleanliness) Average
         FROM Listings L, amenities_and_listings A_L, amenities AM
         WHERE (A_L.amenity_id = AM.amenity_id)
           AND (A_L.listing_id = L.listing_id) 
@@ -30,7 +30,7 @@ const queries = [
     {
         id : 4,
         title : "Print	how	many	listing	items	exist	that	are	posted	by	two	different	hosts	but	the	hosts	have	the	same	name.",
-        sql : `SELECT COUNT(L.LISTING_ID)
+        sql : `SELECT COUNT(L.LISTING_ID) Num
         FROM Listings L
         WHERE L.HOST_ID IN
           ((SELECT DISTINCT H1.host_id
@@ -40,7 +40,7 @@ const queries = [
     {
         id : 5,
         title : "Print	all	the	dates	that	'Viajes	Eco'	has	available	accommodations	for	rent.",
-        sql : `SELECT C.DATE_CALENDAR
+        sql : `SELECT C.DATE_CALENDAR Dates
         FROM CALENDAR C, HOSTS H, LISTINGS L
         WHERE H.HOST_ID = L.HOST_ID
           AND L.LISTING_ID = C.LISTING_ID
@@ -49,12 +49,15 @@ const queries = [
     {   
         id : 6,
         title : "Find	all	the	hosts	(host_ids,	host_names)	that	have	only	one	listing.",
-        sql : `SELECT HOST_NAME FROM 
-        (SELECT H.HOST_NAME, COUNT(L.LISTING_ID) AS coconut
+        sql : `SELECT 
+        HOST_ID, HOST_NAME 
+      FROM 
+        (SELECT H.HOST_ID, H.HOST_NAME, COUNT(L.LISTING_ID) CNT
         FROM HOSTS H, LISTINGS L
         WHERE H.HOST_ID = L.HOST_ID
-        GROUP BY H.HOST_NAME)
-        WHERE coconut = 1`
+        GROUP BY H.HOST_ID,H.HOST_NAME)
+      WHERE CNT = 1
+      FETCH FIRST 50 ROWS ONLY`
     },
     {   
         id : 7,
@@ -79,7 +82,7 @@ const queries = [
     {
         id : 9,
         title : "Find	the	top-10	(in	terms	of	the	number	of	listings)	hosts	(host_ids,	host_names)	in	Spain.",
-        sql : `SELECT H.host_id, H.host_name, COUNT(L.listing_id)
+        sql : `SELECT H.host_id, H.host_name, COUNT(L.listing_id) CNT
         FROM HOSTS H,LISTINGS L, NEIGH N, CITIES C, COUNTRIES CO
         WHERE L.neigh_id = N.neigh_id AND N.city_id = C.city_id 
         AND C.country_id = CO.country_id AND CO.country = 'Spain'
@@ -101,7 +104,7 @@ const queries = [
     {
         id : 11,
         title : "Print how many hosts in each city have declared the area of their property in square meters. Sort the output based on the city name in ascending order.",
-        sql : `SELECT City.city, COUNT(H.HOST_ID)
+        sql : `SELECT City.city, COUNT(H.HOST_ID) CNT
         FROM HOSTS H, LISTINGS L, NEIGH N, CITIES City
         WHERE H.host_id = L.host_id
           AND L.SQUARE_FEET IS NOT NULL
@@ -142,7 +145,7 @@ const queries = [
     {
         id : 14,
         title : "Find the 5 most cheapest Apartments (based on average price within the available dates) in Berlin available for at least one day between 01-03-2019 and 30-04-2019 having at least 2 beds, a location review score of at least 8, flexible cancellation, and listed by a host with a verifiable government id. ",
-        sql : `SELECT DISTINCT(L.LISTING_ID) AS ID, AVG(C.PRICE)
+        sql : `SELECT DISTINCT(L.LISTING_ID) AS ID, AVG(C.PRICE) Average
         FROM LISTINGS L, PROPERTY_TYPES PT, NEIGH N, CITIES City, CALENDAR C, CANCELLATION_POLICIES CP, HOSTS H, HOST_VERIF_AND_HOST HVH, HOST_VERIFICATIONS HV
         WHERE L.PROPERTY_TYPE_ID = PT.PROPERTY_TYPE_ID
           AND PT.PROPERTY_TYPE = 'Apartment'
@@ -194,7 +197,8 @@ const queries = [
     {
         id : 16,
         title : "What are top three busiest listings per host? The more reviews a listing has, the busier the listing is.",
-        sql : `SELECT t2.host_id, t2.name, t2.rev_counts, t2.top_n
+        sql : `
+        SELECT t2.host_id, t2.listing_id L_ID, t2.rev_counts, t2.top_n
         FROM
         (SELECT t.host_id,t.listing_id,t.rev_counts , row_number() over (partition by t.host_id ORDER BY t.rev_counts DESC) as top_n
         FROM
@@ -203,7 +207,8 @@ const queries = [
         WHERE L.listing_id = R.listing_id
         GROUP BY L.host_id,L.listing_id
         ORDER BY COUNT(L.listing_id) DESC) t ) t2
-        WHERE t2.top_n <= 3 FETCH FIRST 20 ROWS ONLY`
+        WHERE t2.top_n <= 3
+        FETCH FIRST 50 ROWS ONLY`
     },
     {
         id : 17,
@@ -237,7 +242,7 @@ const queries = [
     {
         id : 18,
         title : "What is the difference in the average communication review score of the host who has the most diverse way of verifications and of the host who has the least diverse way of verifications. In case of a multiple number of the most or the least diverse verifying hosts, pick a host one from the most and one from the least verifying hosts. ",
-        sql : `SELECT AVG(L1.REVIEW_SCORES_COMMUNICATION)-AVG(L2.REVIEW_SCORES_COMMUNICATION)
+        sql : `SELECT AVG(L1.REVIEW_SCORES_COMMUNICATION)-AVG(L2.REVIEW_SCORES_COMMUNICATION) DIFF_AVERAGE
         FROM LISTINGS L1, (SELECT LIST_COUNT_MAX.HOST_ID
                           FROM (SELECT COUNT(*), HVAH.HOST_ID
                                 FROM HOST_VERIF_AND_HOST HVAH

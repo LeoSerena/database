@@ -7,7 +7,7 @@
 
     <body>
         <title>DB group 39</title>
-        <h1 align = "center">Welcome to Group 39 Query page</h1>
+        <h1 align = "center">Welcome to Group 39 page</h1>
         <hr>
 
         <ul id = nav>
@@ -17,17 +17,21 @@
         </ul>
         
         <div class = 'modif_holder'>
-            <div id = 'deletion_holder'>
-                <p>DELETION</p>
-                <input id = del_tab_name type = 'text' placeholder="enter table name...">
-                <button id = del_tab_name_submit>submit</button>
-                <br>
-                <input id = del_listing_id type = 'text' placeholder="enter listing id...">
-                <button id = del_tab_name_submit>submit</button>
-            </div>
-            <div id = 'insertion_holder'>
 
+            <div id = 'insertion_holder'>
+                <p>NEIGHBORHOOD INSERTION</p>
+                <input id = ins_N_input type = 'text' size = 50 placeholder="enter neighborhood name...">
+                <input id = ins_Ci_input type = 'text' size = 50 placeholder="enter city name...">
+                <input id = ins_Co_input type = 'text' size = 50 placeholder="enter country name...">
+                <button id = ins_N_submit>submit</button>
             </div>
+
+            <div id = 'deletion_holder'>
+                <p>NEIGHBORHOOD DELETION</p>
+                <input id = del_N_input type = 'text' size = 50 placeholder="enter neighborhood name...">
+                <button id = del_N_submit>submit</button>
+            </div>
+            <p id = done></p>
         </div>
 
         <script src = "func.js"></script>

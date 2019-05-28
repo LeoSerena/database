@@ -2,6 +2,7 @@ $(document).ready(function(){
 
     create_predefined();
     create_options();
+    add_ins_del_button_listener();
 
     //query button handler
     $('#submit').click(function(e){
@@ -175,6 +176,9 @@ function display_query_info(id, data){
     holder.append("<p id = title> title: " + data.title + "</p>");
     holder.append('<br>');
     holder.append("<p id = sql> SQL: " + data.sql + "</p>");
+    if(id == 0){
+        holder.append('number of beds: <input type = number id = bed_N>');
+    }
     $('.query_result').append(holder);
     $('.query_result').append('<button id = '+id+' class = predef_submit_button> Go </button>');
 }
@@ -219,6 +223,10 @@ function add_predef_submit_listener(){
         var id = this.id;
         var data = {};
         data.id = id;
+        if(id == 0){
+            data.bed_N = $('#bed_N').val()
+            console.log($('#bed_N').val())
+        }
         $.ajax({
             type : 'POST',
             url : '/predef_query',
@@ -282,4 +290,48 @@ function create_options(){
         $('#options_holder').append(`<li><input type = "checkbox" id = ${el}>${el}</li><br>`);
     });
     $('#options_holder').append(`<li>number of results: <input type = "number" id = rows></li>`)
+}
+
+function add_ins_del_button_listener(){
+    $('#ins_N_submit').click(function(e){
+        $('#done').text('inerting...');
+        e.preventDefault();
+        var data = {};
+        var N =  $('#ins_N_input').val();
+        var Ci = $('#ins_Ci_input').val();
+        var Co = $('#ins_Co_input').val();
+        data.N_to_insert = N
+        data.Ci_to_insert = Ci
+        data.Co_to_insert = Co
+        $.ajax({
+            type : 'POST',
+            url : '/insert_neighborhood',
+            data : JSON.stringify(data),
+            contentType : 'application/json',
+            success : function(data){
+                $('#done').text('done');
+            },
+            error(err){
+                $('#done').text(err)
+            }
+        });
+    });
+    $('#del_N_submit').click(function(e){
+        $('#done').text('deleting...');
+        e.preventDefault();
+        var data = {};
+        data.N_to_delete = $('#del_N_input').val();
+        $.ajax({
+            type : 'POST',
+            url : '/delete_neighborhood',
+            data : JSON.stringify(data),
+            contentType : 'application/json',
+            success : function(data){
+                $('#done').text('done');
+            },
+            error(err){
+                $('#done').text(err);
+            }
+        });
+    });
 }
