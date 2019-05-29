@@ -62,13 +62,13 @@ const queries = [
     {   
         id : 7,
         title : "What	is	the	difference	in	the	average	price	of	listings	with	and	without	Wifi.",
-        sql : `SELECT AVG(L1.PRICE)-AVG(L2.PRICE) AS DIFF_AVG_WITH_AND_WITHOUT_WIFI
-        FROM LISTINGS L1, LISTINGS L2, AMENITIES_AND_LISTINGS AAL, AMENITIES A
-        WHERE A.AMENITY='Wifi' AND A.AMENITY_ID=AAL.AMENITY_ID
-          AND AAL.LISTING_ID=L1.LISTING_ID AND
-          L2.LISTING_ID NOT IN (  SELECT AAL.LISTING_ID
-                                  FROM AMENITIES_AND_LISTINGS AAL, AMENITIES A
-                                  WHERE A.AMENITY='Wifi' AND A.AMENITY_ID=AAL.AMENITY_ID)`
+          sql : `SELECT AVG(L1.PRICE)-AVG(L2.PRICE) AS DIFF_AVG_WITH_AND_WITHOUT_WIFI
+          FROM LISTINGS L1, LISTINGS L2, AMENITIES_AND_LISTINGS AAL, AMENITIES A
+          WHERE A.AMENITY='Wifi' AND A.AMENITY_ID=AAL.AMENITY_ID
+            AND AAL.LISTING_ID=L1.LISTING_ID AND
+            L2.LISTING_ID NOT IN (  SELECT AAL.LISTING_ID
+                                    FROM AMENITIES_AND_LISTINGS AAL, AMENITIES A
+                                    WHERE A.AMENITY='Wifi' AND A.AMENITY_ID=AAL.AMENITY_ID)`
     },
     {   
         id : 8,
@@ -104,7 +104,7 @@ const queries = [
     {
         id : 11,
         title : "Print how many hosts in each city have declared the area of their property in square meters. Sort the output based on the city name in ascending order.",
-        sql : `SELECT City.city, COUNT(H.HOST_ID) CNT
+        sql : `SELECT City.city, COUNT( DISTINCT H.HOST_ID) CNT
         FROM HOSTS H, LISTINGS L, NEIGH N, CITIES City
         WHERE H.host_id = L.host_id
           AND L.SQUARE_FEET IS NOT NULL
@@ -157,6 +157,7 @@ const queries = [
           AND C.DATE_CALENDAR < TO_DATE('2019-09-01','yyyy-mm-dd')
           AND C.price IS NOT NULL
           AND L.BEDS > 2
+          AND C.AVAILABLE = 't'
           AND L.REVIEW_SCORES_LOCATION >= 8
           AND CP.CANCELLATION_POLICY_ID = L.CANCELLATION_POLICY_ID
           AND CP.CANCELLATION_POLICY = 'flexible'
@@ -242,21 +243,20 @@ const queries = [
     {
         id : 18,
         title : "What is the difference in the average communication review score of the host who has the most diverse way of verifications and of the host who has the least diverse way of verifications. In case of a multiple number of the most or the least diverse verifying hosts, pick a host one from the most and one from the least verifying hosts. ",
-        sql : `SELECT AVG(L1.REVIEW_SCORES_COMMUNICATION)-AVG(L2.REVIEW_SCORES_COMMUNICATION) DIFF_AVERAGE
-        FROM LISTINGS L1, (SELECT LIST_COUNT_MAX.HOST_ID
-                          FROM (SELECT COUNT(*), HVAH.HOST_ID
-                                FROM HOST_VERIF_AND_HOST HVAH
-                                GROUP BY HVAH.HOST_ID
-                                ORDER BY COUNT(*) DESC) LIST_COUNT_MAX
-                          WHERE ROWNUM = 1) MAX_VERIF_HOST,
-             LISTINGS L2, (SELECT LIST_COUNT_MIN.HOST_ID
-                          FROM (SELECT COUNT(*), HVAH.HOST_ID
-                                FROM HOST_VERIF_AND_HOST HVAH
-                                GROUP BY HVAH.HOST_ID
-                                ORDER BY COUNT(*)) LIST_COUNT_MIN
-                          WHERE ROWNUM = 1) MIN_VERIF_HOST
-        WHERE L1.HOST_ID = MAX_VERIF_HOST.HOST_ID AND
-              L2.HOST_ID = MIN_VERIF_HOST.HOST_ID`
+        sql : `SELECT L_MAX.AVG_MAX- L_MIN.AVG_MIN
+        FROM (SELECT AVG(L1.REVIEW_SCORES_COMMUNICATION) AS AVG_MAX
+            FROM LISTINGS L1 JOIN ( SELECT HVAH.HOST_ID
+                                    FROM HOST_VERIF_AND_HOST HVAH
+                                    GROUP BY HVAH.HOST_ID
+                                    ORDER BY COUNT(*) DESC
+                                    FETCH FIRST ROW ONLY) HOST_MAX ON L1.HOST_ID=HOST_MAX.HOST_ID) L_MAX,
+          (SELECT AVG(L2.REVIEW_SCORES_COMMUNICATION) AS AVG_MIN
+            FROM LISTINGS L2 JOIN ( SELECT HVAH.HOST_ID
+                              FROM HOST_VERIF_AND_HOST HVAH
+                              GROUP BY HVAH.HOST_ID
+                              ORDER BY COUNT(*)
+                              FETCH FIRST ROW ONLY) HOST_MIN ON L2.HOST_ID=HOST_MIN.HOST_ID) L_MIN
+        `
     },
     {
         id : 19,
@@ -306,7 +306,7 @@ const queries = [
               WHERE C.LISTING_ID = L.LISTING_ID
                 AND C.DATE_CALENDAR > TO_DATE('2019-03-01','yyyy-mm-dd')
                 AND C.DATE_CALENDAR < TO_DATE('2019-09-01','yyyy-mm-dd')
-                AND C.AVAILABLE = 't')
+                AND C.AVAILABLE = 'f')
             GROUP BY NEIGH_ID)
             
           SELECT N.NEIGH 

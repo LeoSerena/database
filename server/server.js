@@ -24,6 +24,11 @@ app.post('/search_query',  function(req, res){
    sql = query_maker.make_SQL(data)
    connection.doQuery(res, sql);
 });
+app.post('/full_query', function(req, res){
+   var data = JSON.stringify(req.body);
+   data = JSON.parse(data);
+   connection.do_full_query(res, data)
+});
 app.post('/predef_query', function(req, res){
    var data = JSON.stringify(req.body);
    data = JSON.parse(data);

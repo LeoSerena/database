@@ -9,7 +9,9 @@
      test_if_Co_in_sql : test_if_Co_in_sql,
      insert_N_sql : insert_N_sql,
      insert_Ci_sql : insert_Ci_sql,
-     insert_Co_sql : insert_Co_sql
+     insert_Co_sql : insert_Co_sql,
+     delete_N_sql : delete_N_sql,
+     full_query_sql : full_query_sql
  };
 
 min_price = 0;
@@ -114,13 +116,38 @@ min_price = 0;
     return sql_where;
 }
 
-function full_query(data){
+function full_query_sql(data){
+    sqls = {}
     id = data.id;
-    sql = `
-    SELECT *
-    FROM LISTINGS L
-    WHERE LISTING_ID = ` + id;
-    return sql;
+
+    //query to fetch basic info
+    sql_info = `
+    SELECT L.name, L.listing_url, H.host_name, H.host_url, C.city, N.neigh, L.review_scores_rating, L.description
+    FROM LISTINGS L, HOSTS H, NEIGH N, CITIES C
+    WHERE L.host_id = H.host_id
+      AND L.neigh_id = N.neigh_id
+      AND N.city_id = C.city_id
+      AND LISTING_ID = ` + id;
+
+    //query to fetch amenities
+    sql_am = `
+    SELECT A.amenity
+    FROM AMENITIES A, AMENITIES_AND_LISTINGS AAL
+    WHERE A.amenity_id = AAL.amenity_id
+      AND AAL.listing_id = ` + id;
+
+    //query to fetch availabilities
+    sql_av = `
+    SELECT C.date_calendar
+    FROM Calendar C
+    WHERE C.available = 't'
+      AND C.listing_id = ` + id;
+
+    sqls.base_info = sql_info;
+    sqls.amenities_info = sql_am;
+    sqls.availabilities_info = sql_av;
+
+    return sqls;
 }
 
 function test_if_N_in_sql(neigbourhood){
@@ -170,5 +197,12 @@ function insert_Co_sql(country){
     VALUES ((SELECT MAX(COUNTRY_ID) FROM COUNTRIES) + 1,
              '`+country+`',
               '` + country.charAt(0) + country.charAt(1) + `')`
+    return sql;
+}
+function delete_N_sql(neigbourhood){
+    sql = `
+    DELETE FROM NEIGH N
+    WHERE N.NEIGH = 
+    '` + neigbourhood  + `'`;
     return sql;
 }

@@ -14,7 +14,8 @@ module.exports = {
   doQuery : doQuery,
   doPredef : doPredef,
   doInsertion : doInsertion,
-  doDeletion : doDeletion
+  doDeletion : doDeletion,
+  do_full_query : do_full_query
 };
 
 
@@ -76,10 +77,12 @@ async function doQuery(res, sql) {
           if(err){
             console.log(err);
             doRelease(connection);
+            return;
           }else{
             var perf = performance.now()-t0;
             console.log(perf);
             display(result, perf, res)
+            return;
           }
         }
       );
@@ -89,12 +92,6 @@ async function doQuery(res, sql) {
     res.send(err);
     return;
   }
-}
-
-
-
-function doDeletion(res, data){
-  return;
 }
 
 function doRelease(connection) {
@@ -144,6 +141,7 @@ async function ISIN(res, data, type) {
           if(err){
             console.error(err);
             doRelease(connection);
+            return;
           }else{
             console.log(result)
             if(result.rows.length == 0){
@@ -206,6 +204,8 @@ function insert(res, data, type){
       console.log('connection established');
       connection.execute(
         sql,
+        [],
+        {autoCommit : true},
         function(err, result){
           if(err){
             console.error(err);
@@ -230,4 +230,110 @@ function insert(res, data, type){
     res.send(err);
     return;
   }
+}
+
+function doDeletion(res, data){
+  console.log(data.N_to_delete);
+  sql = query_maker.delete_N_sql(data.N_to_delete);
+  try{
+    oracledb.getConnection({
+      user:           username,
+      password:       password,
+      connectString:  "(DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = " + hostname + ")(PORT = "+ port +"))(CONNECT_DATA = (SID = " + sid + ")))"
+    },
+    function(err, connection){
+      if(err){
+        console.log(err);
+        return;
+      }
+      console.log('connection established');
+      connection.execute(
+        sql,
+        [],
+        {autoCommit : true},
+        function(err, result){
+          if(err){
+            console.error(err);
+            doRelease(connection);
+          }else{
+            res.send('deletion complete')
+          }
+          return;
+        }
+      );
+    }
+  );
+  } catch (err){
+    res.send(err);
+    return;
+  }
+}
+
+function do_full_query(res, data){
+  console.log(data);
+  sqls = query_maker.full_query_sql(data);
+  sql_1 = sqls.base_info;
+  sql_2 = sqls.amenities_info;
+  sql_3 = sqls.availabilities_info;
+  var result_tracker = {};
+  try{
+    oracledb.getConnection({
+      user:           username,
+      password:       password,
+      connectString:  "(DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = " + hostname + ")(PORT = "+ port +"))(CONNECT_DATA = (SID = " + sid + ")))"
+    },
+    function(err, connection_1){
+      if(err){console.error(err); return;}
+      else{
+        connection_1.execute(
+          sql_1,
+          function(err, res_1){
+            if(err){console.error(err); return;}
+            else{
+              result_tracker.base_info = res_1;
+              oracledb.getConnection({
+                user:           username,
+                password:       password,
+                connectString:  "(DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = " + hostname + ")(PORT = "+ port +"))(CONNECT_DATA = (SID = " + sid + ")))"
+              },
+              function(err, connection_2){
+                if(err){console.log(err); return;}
+                else{
+                  console.log(sql_2)
+                  connection_2.execute(
+                    sql_2,
+                    function(err, res_2){
+                      if(err){console.error(err); result;}
+                      else{
+                        result_tracker.amenities_info = res_2;
+                          oracledb.getConnection({
+                            user:           username,
+                            password:       password,
+                            connectString:  "(DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = " + hostname + ")(PORT = "+ port +"))(CONNECT_DATA = (SID = " + sid + ")))"
+                          },
+                          function(err, connection_3){
+                            if(err){console.error(err); result;}
+                          else{
+                            connection_3.execute(
+                              sql_3,
+                              function(err, res_3){
+                                if(err){console.error(err); result}
+                                else{
+                                  result_tracker.availabilities_info = res_3;
+                                  res.send(result_tracker);
+                                }
+                              }
+                            )
+                          }
+                      
+                        })
+                      }
+                  })
+                }
+              })
+            }
+          })
+      }
+    })
+  }catch(err){console.error(err); return;}
 }

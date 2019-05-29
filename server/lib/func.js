@@ -9,7 +9,6 @@ $(document).ready(function(){
         e.preventDefault();
         var l_name_search = $('.l_name_search').val();
         var data = {};
-        data.full_query = false;
         data.l_name_search = l_name_search;
         if(l_name_search == 'bigg yoshi'){
             console.log('bigg yoshi mod activated');
@@ -249,15 +248,18 @@ function add_more_info_button_listener(){
         e.preventDefault();
         var id = this.id;
         var data = {};
-        data.full_query = true;
         data.id = id;
+        console.log('more info button clicked');
         $.ajax({
             type : 'POST',
-            url : '/search_query',
+            url : '/full_query',
             data : JSON.stringify(data),
             contentType : 'application/json',
             success : function(data){
-                display_query(data);
+                console.log(data);
+                display_query(data.base_info);
+                //display_amenities(data.amenities_info);
+                //display_availabilities(data.availabilities_info);
             },
             error(err){
                 $('.query_result').text(err);
@@ -334,4 +336,12 @@ function add_ins_del_button_listener(){
             }
         });
     });
+}
+
+function display_amenities(amenities){
+
+}
+
+function display_availabilities(availabilities){
+
 }
