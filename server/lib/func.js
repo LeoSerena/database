@@ -258,8 +258,8 @@ function add_more_info_button_listener(){
             success : function(data){
                 console.log(data);
                 display_query(data.base_info);
-                //display_amenities(data.amenities_info);
-                //display_availabilities(data.availabilities_info);
+                display_amenities(data.amenities_info);
+                display_availabilities(data.availabilities_info);
             },
             error(err){
                 $('.query_result').text(err);
@@ -339,9 +339,19 @@ function add_ins_del_button_listener(){
 }
 
 function display_amenities(amenities){
-
+    var amenities_holder = $('<ul class = list_holder id = amenities_holder>');
+    amenities_holder.append('<ul class = list_holder>' + 'AMENITIES')
+    amenities.rows.forEach(am => {
+        amenities_holder.append('<li align = left>' + am.AMENITY );
+    });
+    $('.query_result').append(amenities_holder);
 }
 
 function display_availabilities(availabilities){
-
+    var availabilities_holder = $('<ul class = list_holder id = availabilities_holder>');
+    availabilities_holder.append('<ul class = list_holder>' + 'DATE AVAILABLE')
+    availabilities.rows.forEach(av => {
+        availabilities_holder.append('<li align = left>' + av.DATE_CALENDAR);
+    });
+    $('.query_result').append(availabilities_holder);
 }

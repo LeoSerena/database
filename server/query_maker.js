@@ -122,7 +122,7 @@ function full_query_sql(data){
 
     //query to fetch basic info
     sql_info = `
-    SELECT L.name, L.listing_url, H.host_name, H.host_url, C.city, N.neigh, L.review_scores_rating, L.description
+    SELECT L.name, L.listing_url, H.host_name, H.host_url, C.city, N.neigh, L.review_scores_rating
     FROM LISTINGS L, HOSTS H, NEIGH N, CITIES C
     WHERE L.host_id = H.host_id
       AND L.neigh_id = N.neigh_id
