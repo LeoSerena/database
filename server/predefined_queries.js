@@ -116,31 +116,38 @@ const queries = [
     {
         id : 12,
         title : "The quality of a neighborhood is defined based on the number of listings and the review score of these listings, one way for computing that is using the median of the review scores, as medians are more robust to outliers. Find the top-5 neighborhoods using median review scores (review_scores_rating) of listings in Madrid. Note: Implement the median operator on your own, and do not use the available built-in operator.",
-        sql : `SELECT DISTINCT PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY L.REVIEW_SCORES_RATING) OVER (PARTITION BY L.NEIGH_ID) AS MEDIAN, L.NEIGH_ID
-        FROM LISTINGS L, NEIGH N, CITIES C
-        WHERE L.NEIGH_ID=N.NEIGH_ID AND N.CITY_ID=C.CITY_ID AND C.CITY='madrid'
+        sql : `SELECT
+        DISTINCT PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY
+        L.REVIEW_SCORES_RATING) OVER (PARTITION BY L.NEIGH_ID) AS MEDIAN, N.NEIGH
+        FROM
+        LISTINGS L, NEIGH N, CITIES C
+        WHERE L.NEIGH_ID=N.NEIGH_ID
+        AND N.CITY_ID=C.CITY_ID
+        AND C.CITY='madrid'
         ORDER BY MEDIAN DESC
         FETCH FIRST 5 ROWS ONLY`
     },
     {
         id : 13,
         title : "Find all the hosts (host_ids, host_names) with the highest number of listings.",
-        sql : `SELECT hosts_by_count.host_id, hosts_by_count.host_name, hosts_by_count.counts
+        sql : `
+        SELECT 
+     hosts_by_count.host_id,hosts_by_count.host_name
+FROM
+     (SELECT H.host_id, H.host_name, COUNT(L.listing_id) as counts
+        FROM HOSTS H,LISTINGS L
+        WHERE H.HOST_ID = L.HOST_ID
+        GROUP BY H.host_id,H.host_name
+        ORDER BY COUNT(L.listing_id) DESC) hosts_by_count,
+      (SELECT max(t.counts) as max_val
         FROM
-            (SELECT H.host_id, H.host_name, COUNT(L.listing_id) as counts
-            FROM HOSTS H,LISTINGS L
-            WHERE H.HOST_ID = L.HOST_ID
-            GROUP BY H.host_id,H.host_name
-            ORDER BY COUNT(L.listing_id) DESC) hosts_by_count,
-            (SELECT max(t.counts) as max_val
-            FROM
-                (SELECT H.host_id, COUNT(L.listing_id) as counts
-                FROM HOSTS H,LISTINGS L
-                WHERE H.HOST_ID = L.HOST_ID
-                GROUP BY H.host_id,H.host_name
-                )
-             t ) max_count
-        WHERE hosts_by_count.counts = max_count.max_val`
+          (SELECT H.host_id, COUNT(L.listing_id) as counts
+             FROM HOSTS H,LISTINGS L
+             WHERE H.HOST_ID = L.HOST_ID
+             GROUP BY H.host_id,H.host_name)
+        t ) max_count
+WHERE hosts_by_count.counts = max_count.max_val
+`
     },
     {
         id : 14,
@@ -199,17 +206,18 @@ const queries = [
         id : 16,
         title : "What are top three busiest listings per host? The more reviews a listing has, the busier the listing is.",
         sql : `
-        SELECT t2.host_id, t2.listing_id L_ID, t2.rev_counts, t2.top_n
-        FROM
-        (SELECT t.host_id,t.listing_id,t.rev_counts , row_number() over (partition by t.host_id ORDER BY t.rev_counts DESC) as top_n
-        FROM
-        (SELECT L.host_id,L.listing_id, COUNT(R.review_id) as rev_counts
-        FROM Listings L, Reviews R
-        WHERE L.listing_id = R.listing_id
-        GROUP BY L.host_id,L.listing_id
-        ORDER BY COUNT(L.listing_id) DESC) t ) t2
-        WHERE t2.top_n <= 3
-        FETCH FIRST 50 ROWS ONLY`
+        SELECT
+t2.host_id, t2.listing_id L_ID, t2.rev_counts, t2.top_n
+FROM
+      (SELECT t.host_id,t.listing_id,t.rev_counts , row_number() over    (partition by t.host_id ORDER BY t.rev_counts DESC) as top_n
+       FROM
+       (SELECT L.host_id,L.listing_id, COUNT(R.review_id) as rev_counts
+       	FROM Listings L, Reviews R
+       	WHERE L.listing_id = R.listing_id
+       	GROUP BY L.host_id,L.listing_id
+       	ORDER BY COUNT(L.listing_id) DESC) t ) t2
+       WHERE t2.top_n <= 3
+       FETCH FIRST 10 ROWS ONLY`
     },
     {
         id : 17,
@@ -261,29 +269,28 @@ const queries = [
     {
         id : 19,
         title : "What is the city who has the highest number of reviews for the room types whose average number of accommodates are greater than 3. ",
-        sql : `SELECT t.city, sum(t.rev_counts) as count_per_city
+        sql : `Select t2.city
         FROM
-        
-        (SELECT L2.listing_id,L2.name, C.city, count(R.review_id) as rev_counts
-        FROM Neigh N, Cities C, Reviews R,
-        
-        (SELECT L.listing_id,L.name,L.room_type_id, L.neigh_id
-        FROM Listings L
-        WHERE L.room_type_id IN
-        (SELECT t.room_type_id
-        FROM
-        (SELECT L.room_type_id, R.room_type,AVG(L.accommodates) as avg_accommodates
-        FROM Listings L, Room_types R
-        WHERE L.room_type_id = R.room_type_id
-        GROUP BY L.room_type_id, R.room_type) t
-        WHERE t.avg_accommodates > 3)) L2
-        
-        WHERE L2.listing_id = R.listing_id AND L2.neigh_id = N.neigh_id
-        AND N.city_id = C.city_id
-        GROUP BY L2.listing_id,L2.name, C.city) t
-        GROUP BY t.city
-        ORDER BY count_per_city DESC
-        FETCH FIRST ROW ONLY`
+        (SELECT t.city, sum(t.rev_counts) as count_per_city
+               FROM
+               (SELECT L2.listing_id,L2.name, C.city, count(R.review_id) as rev_counts
+               FROM Neigh N, Cities C, Reviews R,
+               (SELECT L.listing_id,L.name,L.room_type_id, L.neigh_id
+               FROM Listings L
+               WHERE L.room_type_id IN
+               (SELECT t.room_type_id
+               FROM
+               (SELECT L.room_type_id,AVG(L.accommodates) as avg_accommodates
+               FROM Listings L
+               GROUP BY L.room_type_id) t
+               WHERE t.avg_accommodates > 3)) L2
+               WHERE L2.listing_id = R.listing_id AND L2.neigh_id = N.neigh_id
+               AND N.city_id = C.city_id
+               GROUP BY L2.listing_id,L2.name, C.city) t
+               GROUP BY t.city
+               ORDER BY count_per_city DESC
+               FETCH FIRST ROW ONLY) t2
+        `
     },
     {
         id : 20,
@@ -345,25 +352,25 @@ WHERE AV_TAB.NUM_AVAIL_LIST_IN_2018/ALL_TAB.NUM_LIST_IN_2018>=0.2`
     {
         id : 22,
         title : "Print all the neighborhouds in Barcelona where more than 5 percent of their accommodation’s cancelation policy is strict with grace period. ",
-        sql : `SELECT strict_cp.neigh_id,strict_cp.neigh,
-        strict_cp.strict_count, all_cp.all_count
-        FROM 
+        sql : `SELECT strict_cp.neigh
+        FROM
         (SELECT  N.neigh_id,N.neigh, C.city, count(CP.cancellation_policy) as strict_count
         FROM listings L, neigh N, cities C, cancellation_policies CP
-        WHERE L.neigh_id = N.neigh_id AND N.city_id = C.city_id 
+        WHERE L.neigh_id = N.neigh_id AND N.city_id = C.city_id
         AND L.cancellation_policy_id = CP.cancellation_policy_id
         AND C.CITY = 'barcelona'
         AND CP.cancellation_policy = 'strict_14_with_grace_period'
         GROUP BY N.neigh_id, N.neigh, C.city) strict_cp,
         (SELECT  N.neigh_id,N.neigh, C.city, count(CP.cancellation_policy) as all_count
         FROM listings L, neigh N, cities C, cancellation_policies CP
-        WHERE L.neigh_id = N.neigh_id AND N.city_id = C.city_id 
+        WHERE L.neigh_id = N.neigh_id AND N.city_id = C.city_id
         AND L.cancellation_policy_id = CP.cancellation_policy_id
         AND C.CITY = 'barcelona'
         GROUP BY N.neigh_id, N.neigh, C.city) all_cp
         WHERE
         strict_cp.neigh_id = all_cp.neigh_id
-        AND (strict_cp.strict_count/all_cp.all_count) >= 0.05`
+        AND (strict_cp.strict_count/all_cp.all_count) >= 0.05
+ `
     }
 ]
 
