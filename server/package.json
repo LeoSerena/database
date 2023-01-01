@@ -9,7 +9,7 @@
     "ngrok": "^3.1.1",
     "pug": "^2.0.3",
     "socket.io": "^2.2.0",
-    "webpack-cli": "^3.3.2"
+    "webpack-cli": "^5.0.1"
   },
   "scripts": {
     "start": "node server.js"
@@ -18,7 +18,7 @@
   "version": "1.0.0",
   "main": "demo0.js",
   "devDependencies": {
-    "webpack": "^4.30.0",
+    "webpack": "^5.75.0",
     "webpack-dev-server": "^3.3.1"
   },
   "author": "",
